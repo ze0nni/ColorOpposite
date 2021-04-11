@@ -45,8 +45,8 @@ class Arena {
 
         _listener.call(Resize(_stage.size));
         for (i in 0..._stage.size) {
-            spawnBlock(i, 6, Color1);
-            spawnBlock(i, i, Color1);
+            spawnBlock(i, 6, Color1, Swap);
+            spawnBlock(i, i, Color1, Swap);
         }
     }
 
@@ -55,10 +55,11 @@ class Arena {
     }
 
     public function update(dt: Float) {
+        handleGenerateBlocks();
         handleEmptyCells();
     }
 
-    function spawnBlock(x: Int, y: Int, kind: BlockKind) {
+    function spawnBlock(x: Int, y: Int, kind: BlockKind, reason: BlockSpawnReason) {
         if (_stage.cells[y][x].block != null) {
             _listener.call(BlockDespawned(_stage.cells[y][x].block.id));
         }
@@ -68,7 +69,7 @@ class Arena {
             y: y,
             kind: kind
         }
-        _listener.call(BlockSpawned(_stage.cells[y][x].block));
+        _listener.call(BlockSpawned(_stage.cells[y][x].block, reason));
     }
 
     public function lockCell(x: Int, y: Int) {
@@ -81,6 +82,20 @@ class Arena {
 
     inline function IsFree(x: Int, y: Int): Bool {
         return _cells[y][x].lock == 0;
+    }
+
+    function handleGenerateBlocks() {
+        var size = _stage.size;
+        var top = size - 1;
+        for (x in 0...size) {
+            if (!IsFree(x, top)) {
+                continue;
+            }
+            if (_stage.cells[top][x].block != null) {
+                continue;
+            }
+            spawnBlock(x, top, Color1, Generate);
+        }
     }
 
     function handleEmptyCells() {

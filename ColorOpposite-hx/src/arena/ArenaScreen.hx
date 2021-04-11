@@ -40,11 +40,11 @@ class ArenaScreen extends Script<ArenaScreenData> {
         switch (event) {
             case Resize(size):
             
-            case BlockSpawned(block):
+            case BlockSpawned(block, reason):
                 var blockId = Factory.create(ArenaScreenRes.arena_block_factory);
                 self.blocks[block.id] = blockId;
                 Go.set_parent(blockId, ArenaScreenRes.arena);
-                Msg.post(blockId, BlockViewMessages.setup, block);
+                Msg.post(blockId, BlockViewMessages.setup, {block:block,reason: reason});
 
             case BlockDespawned(id):
                 var blockId = self.blocks[id];

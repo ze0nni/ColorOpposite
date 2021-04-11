@@ -6,7 +6,7 @@ import arena.stage.Block;
 enum ArenaEvent {
     Resize(size: Int);
     
-    BlockSpawned(block: Block);
+    BlockSpawned(block: Block, reason: BlockSpawnReason);
     BlockDespawned(id: Identity<Block>);
     BlockMoved(id: Identity<Block>, x: Int, y: Int);
     BlockKindChanged(id: Identity<Block>, kind: BlockKind);
