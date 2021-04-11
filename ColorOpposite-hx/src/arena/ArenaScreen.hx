@@ -16,12 +16,20 @@ class ArenaScreen extends Script<ArenaScreenData> {
         Main.gotoScreen(MainRes.screen_collection_proxy_arena);
     }
 
+    public static var ArenaInst(default, null): Arena;
+
     override function init(self:ArenaScreenData) {
         self.blocks = new Map();
 
         self.arena = Arena.Empty(function(event: ArenaEvent) {
             onArenaEvent(self, event);
         });
+
+        ArenaInst = self.arena;
+    }
+
+    override function final_(self:ArenaScreenData) {
+        ArenaInst = null;
     }
 
     override function update(self:ArenaScreenData, dt:Float) {
@@ -46,6 +54,10 @@ class ArenaScreen extends Script<ArenaScreenData> {
                 }
 
             case BlockMoved(id, x, y):
+                var blockId = self.blocks[id];
+                if (blockId != null) {
+                    Msg.post(blockId, BlockViewMessages.move, {x:x, y:y});
+                }
 
             case BlockKindChanged(id, kind):
         }

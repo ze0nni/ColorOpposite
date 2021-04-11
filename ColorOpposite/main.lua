@@ -196,40 +196,29 @@ local Class = _hx_e();
 local Enum = _hx_e();
 
 local Array = _hx_e()
-local Date = _hx_e()
-local Lambda = _hx_e()
 __defold_support_Script = _hx_e()
 local Main = _hx_e()
 local MainRes = _hx_e()
 local Math = _hx_e()
-local Reflect = _hx_e()
 local ScreenMessages = _hx_e()
 local String = _hx_e()
 local Std = _hx_e()
-local StringBuf = _hx_e()
-local StringTools = _hx_e()
-local ValueType = _hx_e()
-local Type = _hx_e()
 __arena_ArenaScreen = _hx_e()
 __arena_ArenaScreenRes = _hx_e()
 __arena_BlockViewMessages = _hx_e()
+__arena_BlockView = _hx_e()
 __arena_stage_Arena = _hx_e()
+__arena_stage_ArenaConst = _hx_e()
 __arena_stage_ArenaEvent = _hx_e()
 __arena_stage_CellsExt = _hx_e()
 __defold_CollectionproxyMessages = _hx_e()
 __defold_GoMessages = _hx_e()
 __defold_support_Init = _hx_e()
 __haxe_IMap = _hx_e()
-__haxe_Json = _hx_e()
 __haxe_Log = _hx_e()
 __haxe_ds_IntMap = _hx_e()
-__haxe_ds_StringMap = _hx_e()
-__haxe_format_JsonPrinter = _hx_e()
 __haxe_iterators_ArrayIterator = _hx_e()
 __haxe_iterators_ArrayKeyValueIterator = _hx_e()
-__lua_Boot = _hx_e()
-__lua_UserData = _hx_e()
-__lua_Thread = _hx_e()
 
 local _hx_bind, _hx_bit, _hx_staticToInstance, _hx_funcToField, _hx_maxn, _hx_print, _hx_apply_self, _hx_box_mr, _hx_bit_clamp, _hx_table, _hx_bit_raw
 local _hx_pcall_default = {};
@@ -243,9 +232,7 @@ end
 Array.super = function(self) 
   _hx_tab_array(self, 0);
 end
-Array.__name__ = true
 Array.prototype = _hx_e();
-Array.prototype.length= nil;
 Array.prototype.concat = function(self,a) 
   local _g = _hx_tab_array({}, 0);
   local _g1 = 0;
@@ -547,67 +534,13 @@ Array.prototype.resize = function(self,len)
   end;
 end
 
-Array.prototype.__class__ =  Array
-
-Date.new = function(year,month,day,hour,min,sec) 
-  local self = _hx_new(Date.prototype)
-  Date.super(self,year,month,day,hour,min,sec)
-  return self
-end
-Date.super = function(self,year,month,day,hour,min,sec) 
-  self.t = _G.os.time(_hx_o({__fields__={year=true,month=true,day=true,hour=true,min=true,sec=true},year=year,month=month + 1,day=day,hour=hour,min=min,sec=sec}));
-  self.d = _G.os.date("*t", self.t);
-  self.dUTC = _G.os.date("!*t", self.t);
-end
-Date.__name__ = true
-Date.prototype = _hx_e();
-Date.prototype.d= nil;
-Date.prototype.dUTC= nil;
-Date.prototype.t= nil;
-Date.prototype.getHours = function(self) 
-  do return self.d.hour end
-end
-Date.prototype.getMinutes = function(self) 
-  do return self.d.min end
-end
-Date.prototype.getSeconds = function(self) 
-  do return self.d.sec end
-end
-Date.prototype.getFullYear = function(self) 
-  do return self.d.year end
-end
-Date.prototype.getMonth = function(self) 
-  do return self.d.month - 1 end
-end
-Date.prototype.getDate = function(self) 
-  do return self.d.day end
-end
-
-Date.prototype.__class__ =  Date
-
-Lambda.new = {}
-Lambda.__name__ = true
-Lambda.has = function(it,elt) 
-  local x = it:iterator();
-  while (x:hasNext()) do 
-    if (x:next() == elt) then 
-      do return true end;
-    end;
-  end;
-  do return false end;
-end
-
 __defold_support_Script.new = function() 
-  local self = _hx_new(__defold_support_Script.prototype)
+  local self = _hx_new()
   __defold_support_Script.super(self)
   return self
 end
 __defold_support_Script.super = function(self) 
 end
-__defold_support_Script.__name__ = true
-__defold_support_Script.prototype = _hx_e();
-
-__defold_support_Script.prototype.__class__ =  __defold_support_Script
 
 Main.new = function() 
   local self = _hx_new(Main.prototype)
@@ -618,12 +551,10 @@ Main.super = function(self)
   self.use_fixed_fit_projection = _G.hash("use_fixed_fit_projection");
   __defold_support_Script.super(self);
 end
-Main.__name__ = true
 Main.gotoScreen = function(factory) 
   _G.msg.post(MainRes.screen, ScreenMessages.goto_screen, _hx_o({__fields__={screen=true},screen=factory}));
 end
 Main.prototype = _hx_e();
-Main.prototype.use_fixed_fit_projection= nil;
 Main.prototype.init = function(self,_self) 
   Main.DISPLAY_WIDTH = Std.parseInt(_G.sys.get_config("display.width"));
   Main.DISPLAY_HEIGHT = Std.parseInt(_G.sys.get_config("display.height"));
@@ -645,16 +576,12 @@ Main.prototype.on_message = function(self,_self,message_id,message,sender)
     _G.msg.post(sender, __defold_CollectionproxyMessages.init);
     _G.msg.post(sender, __defold_CollectionproxyMessages.enable); end;
 end
-
-Main.prototype.__class__ =  Main
 Main.__super__ = __defold_support_Script
 setmetatable(Main.prototype,{__index=__defold_support_Script.prototype})
 
 MainRes.new = {}
-MainRes.__name__ = true
 
 Math.new = {}
-Math.__name__ = true
 Math.isNaN = function(f) 
   do return f ~= f end;
 end
@@ -673,68 +600,7 @@ Math.min = function(a,b)
   end;
 end
 
-Reflect.new = {}
-Reflect.__name__ = true
-Reflect.field = function(o,field) 
-  if (_G.type(o) == "string") then 
-    if (field == "length") then 
-      do return _hx_wrap_if_string_field(o,'length') end;
-    else
-      do return String.prototype[field] end;
-    end;
-  else
-    local _hx_status, _hx_result = pcall(function() 
-    
-        do return o[field] end;
-      return _hx_pcall_default
-    end)
-    if not _hx_status and _hx_result == "_hx_pcall_break" then
-    elseif not _hx_status then 
-      local _g = _hx_result;
-      do return nil end;
-    elseif _hx_result ~= _hx_pcall_default then
-      return _hx_result
-    end;
-  end;
-end
-Reflect.fields = function(o) 
-  local _hx_continue_1 = false;
-  while (true) do repeat 
-    if (_G.type(o) == "string") then 
-      o = String.prototype;
-      break;
-    else
-      do return _hx_field_arr(o) end;
-    end;until true
-    if _hx_continue_1 then 
-    _hx_continue_1 = false;
-    break;
-    end;
-    
-  end;
-end
-Reflect.isFunction = function(f) 
-  if (_G.type(f) == "function") then 
-    do return not ((function() 
-      local _hx_1
-      if (_G.type(f) ~= "table") then 
-      _hx_1 = false; else 
-      _hx_1 = f.__name__; end
-      return _hx_1
-    end )() or (function() 
-      local _hx_2
-      if (_G.type(f) ~= "table") then 
-      _hx_2 = false; else 
-      _hx_2 = f.__ename__; end
-      return _hx_2
-    end )()) end;
-  else
-    do return false end;
-  end;
-end
-
 ScreenMessages.new = {}
-ScreenMessages.__name__ = true
 
 String.new = function(string) 
   local self = _hx_new(String.prototype)
@@ -744,7 +610,6 @@ String.new = function(string)
 end
 String.super = function(self,string) 
 end
-String.__name__ = true
 String.__index = function(s,k) 
   if (k == "length") then 
     do return _G.string.len(s) end;
@@ -794,7 +659,6 @@ String.fromCharCode = function(code)
   do return _G.string.char(code) end;
 end
 String.prototype = _hx_e();
-String.prototype.length= nil;
 String.prototype.toUpperCase = function(self) 
   do return _G.string.upper(self) end
 end
@@ -915,10 +779,7 @@ String.prototype.substr = function(self,pos,len)
   do return _G.string.sub(self, pos + 1, pos + len) end
 end
 
-String.prototype.__class__ =  String
-
 Std.new = {}
-Std.__name__ = true
 Std.string = function(s) 
   do return _hx_tostring(s, 0) end;
 end
@@ -974,161 +835,6 @@ Std.parseInt = function(x)
   end;
 end
 
-StringBuf.new = function() 
-  local self = _hx_new(StringBuf.prototype)
-  StringBuf.super(self)
-  return self
-end
-StringBuf.super = function(self) 
-  self.b = ({});
-  self.length = 0;
-end
-StringBuf.__name__ = true
-StringBuf.prototype = _hx_e();
-StringBuf.prototype.b= nil;
-StringBuf.prototype.length= nil;
-
-StringBuf.prototype.__class__ =  StringBuf
-
-StringTools.new = {}
-StringTools.__name__ = true
-StringTools.lpad = function(s,c,l) 
-  if (#c <= 0) then 
-    do return s end;
-  end;
-  local buf_b = ({});
-  local buf_length = 0;
-  l = l - #s;
-  while (buf_length < l) do 
-    local str = Std.string(c);
-    _G.table.insert(buf_b, str);
-    buf_length = buf_length + #str;
-  end;
-  _G.table.insert(buf_b, Std.string(s));
-  do return _G.table.concat(buf_b) end;
-end
-_hxClasses["ValueType"] = { __ename__ = true, __constructs__ = _hx_tab_array({[0]="TNull","TInt","TFloat","TBool","TObject","TFunction","TClass","TEnum","TUnknown"},9)}
-ValueType = _hxClasses["ValueType"];
-ValueType.TNull = _hx_tab_array({[0]="TNull",0,__enum__ = ValueType},2)
-
-ValueType.TInt = _hx_tab_array({[0]="TInt",1,__enum__ = ValueType},2)
-
-ValueType.TFloat = _hx_tab_array({[0]="TFloat",2,__enum__ = ValueType},2)
-
-ValueType.TBool = _hx_tab_array({[0]="TBool",3,__enum__ = ValueType},2)
-
-ValueType.TObject = _hx_tab_array({[0]="TObject",4,__enum__ = ValueType},2)
-
-ValueType.TFunction = _hx_tab_array({[0]="TFunction",5,__enum__ = ValueType},2)
-
-ValueType.TClass = function(c) local _x = _hx_tab_array({[0]="TClass",6,c,__enum__=ValueType}, 3); return _x; end 
-ValueType.TEnum = function(e) local _x = _hx_tab_array({[0]="TEnum",7,e,__enum__=ValueType}, 3); return _x; end 
-ValueType.TUnknown = _hx_tab_array({[0]="TUnknown",8,__enum__ = ValueType},2)
-
-
-Type.new = {}
-Type.__name__ = true
-Type.getClass = function(o) 
-  if (o == nil) then 
-    do return nil end;
-  end;
-  local o = o;
-  if (__lua_Boot.__instanceof(o, Array)) then 
-    do return Array end;
-  else
-    if (__lua_Boot.__instanceof(o, String)) then 
-      do return String end;
-    else
-      local cl = o.__class__;
-      if (cl ~= nil) then 
-        do return cl end;
-      else
-        do return nil end;
-      end;
-    end;
-  end;
-end
-Type.getInstanceFields = function(c) 
-  local p = c.prototype;
-  local a = _hx_tab_array({}, 0);
-  while (p ~= nil) do 
-    local _g = 0;
-    local _g1 = Reflect.fields(p);
-    while (_g < _g1.length) do 
-      local f = _g1[_g];
-      _g = _g + 1;
-      if (not Lambda.has(a, f)) then 
-        a:push(f);
-      end;
-    end;
-    local mt = _G.getmetatable(p);
-    if ((mt ~= nil) and (mt.__index ~= nil)) then 
-      p = mt.__index;
-    else
-      p = nil;
-    end;
-  end;
-  do return a end;
-end
-Type.typeof = function(v) 
-  local _g = _G.type(v);
-  if (_g) == "boolean" then 
-    do return ValueType.TBool end;
-  elseif (_g) == "function" then 
-    if ((function() 
-      local _hx_1
-      if (_G.type(v) ~= "table") then 
-      _hx_1 = false; else 
-      _hx_1 = v.__name__; end
-      return _hx_1
-    end )() or (function() 
-      local _hx_2
-      if (_G.type(v) ~= "table") then 
-      _hx_2 = false; else 
-      _hx_2 = v.__ename__; end
-      return _hx_2
-    end )()) then 
-      do return ValueType.TObject end;
-    end;
-    do return ValueType.TFunction end;
-  elseif (_g) == "nil" then 
-    do return ValueType.TNull end;
-  elseif (_g) == "number" then 
-    if (_G.math.ceil(v) == (_G.math.fmod(v, 2147483648.0))) then 
-      do return ValueType.TInt end;
-    end;
-    do return ValueType.TFloat end;
-  elseif (_g) == "string" then 
-    do return ValueType.TClass(String) end;
-  elseif (_g) == "table" then 
-    local e = v.__enum__;
-    if (e ~= nil) then 
-      do return ValueType.TEnum(e) end;
-    end;
-    local c;
-    if (__lua_Boot.__instanceof(v, Array)) then 
-      c = Array;
-    else
-      if (__lua_Boot.__instanceof(v, String)) then 
-        c = String;
-      else
-        local cl = v.__class__;
-        c = (function() 
-          local _hx_3
-          if (cl ~= nil) then 
-          _hx_3 = cl; else 
-          _hx_3 = nil; end
-          return _hx_3
-        end )();
-      end;
-    end;
-    if (c ~= nil) then 
-      do return ValueType.TClass(c) end;
-    end;
-    do return ValueType.TObject end;else
-  do return ValueType.TUnknown end; end;
-end
-
 __arena_ArenaScreen.new = function() 
   local self = _hx_new(__arena_ArenaScreen.prototype)
   __arena_ArenaScreen.super(self)
@@ -1137,7 +843,6 @@ end
 __arena_ArenaScreen.super = function(self) 
   __defold_support_Script.super(self);
 end
-__arena_ArenaScreen.__name__ = true
 __arena_ArenaScreen.Enter = function() 
   Main.gotoScreen(MainRes.screen_collection_proxy_arena);
 end
@@ -1148,6 +853,10 @@ __arena_ArenaScreen.prototype.init = function(self,_self)
   _self.arena = __arena_stage_Arena.Empty(function(event) 
     _gthis:onArenaEvent(_self, event);
   end);
+  __arena_ArenaScreen.ArenaInst = _self.arena;
+end
+__arena_ArenaScreen.prototype.final_ = function(self,_self) 
+  __arena_ArenaScreen.ArenaInst = nil;
 end
 __arena_ArenaScreen.prototype.update = function(self,_self,dt) 
   _self.arena:update(dt);
@@ -1179,18 +888,43 @@ __arena_ArenaScreen.prototype.onArenaEvent = function(self,_self,event)
       _self.blocks:remove(_g);
     end;
   elseif (tmp) == 3 then 
+    local ret = _self.blocks.h[event[2]];
+    if (ret == __haxe_ds_IntMap.tnull) then 
+      ret = nil;
+    end;
+    local blockId = ret;
+    if (blockId ~= nil) then 
+      _G.msg.post(blockId, __arena_BlockViewMessages.move, _hx_o({__fields__={x=true,y=true},x=event[3],y=event[4]}));
+    end;
   elseif (tmp) == 4 then  end;
 end
-
-__arena_ArenaScreen.prototype.__class__ =  __arena_ArenaScreen
 __arena_ArenaScreen.__super__ = __defold_support_Script
 setmetatable(__arena_ArenaScreen.prototype,{__index=__defold_support_Script.prototype})
 
 __arena_ArenaScreenRes.new = {}
-__arena_ArenaScreenRes.__name__ = true
 
 __arena_BlockViewMessages.new = {}
-__arena_BlockViewMessages.__name__ = true
+
+__arena_BlockView.new = function() 
+  local self = _hx_new(__arena_BlockView.prototype)
+  __arena_BlockView.super(self)
+  return self
+end
+__arena_BlockView.super = function(self) 
+  __defold_support_Script.super(self);
+end
+__arena_BlockView.prototype = _hx_e();
+__arena_BlockView.prototype.on_message = function(self,_self,message_id,message,sender) 
+  if (message_id) == __arena_BlockViewMessages.move then 
+    __arena_ArenaScreen.ArenaInst:lockCell(message.x, message.y);
+    _G.go.animate(".", "position", _G.go.PLAYBACK_ONCE_FORWARD, __arena_stage_ArenaConst.tileCenter(message.x, message.y), _G.go.EASING_LINEAR, 0.15, 0, function(_,_1,_2) 
+      __arena_ArenaScreen.ArenaInst:unlockCell(message.x, message.y);
+    end);
+  elseif (message_id) == __arena_BlockViewMessages.setup then 
+    _G.go.set_position(__arena_stage_ArenaConst.tileCenter(message.x, message.y)); end;
+end
+__arena_BlockView.__super__ = __defold_support_Script
+setmetatable(__arena_BlockView.prototype,{__index=__defold_support_Script.prototype})
 
 __arena_stage_Arena.new = function(stage,listener) 
   local self = _hx_new(__arena_stage_Arena.prototype)
@@ -1200,25 +934,100 @@ end
 __arena_stage_Arena.super = function(self,stage,listener) 
   self._stage = stage;
   self._listener = listener;
+  local size = self._stage.size;
+  self._cells = Array.new();
+  local _g = 0;
+  while (_g < size) do 
+    _g = _g + 1;
+    local row = Array.new();
+    self._cells:push(row);
+    local _g = 0;
+    while (_g < size) do 
+      _g = _g + 1;
+      row:push(_hx_o({__fields__={lock=true},lock=0}));
+    end;
+  end;
   self._listener(__arena_stage_ArenaEvent.Resize(self._stage.size));
-  __haxe_Log.trace(__haxe_Json.stringify(self._stage), _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/arena/stage/Arena.hx",lineNumber=33,className="arena.stage.Arena",methodName="new"}));
+  local _g = 0;
+  local _g1 = self._stage.size;
+  while (_g < _g1) do 
+    _g = _g + 1;
+    local i = _g - 1;
+    self:spawnBlock(i, 6, 1);
+    self:spawnBlock(i, i, 1);
+  end;
 end
-__arena_stage_Arena.__name__ = true
 __arena_stage_Arena.Empty = function(listener) 
   do return __arena_stage_Arena.new(_hx_o({__fields__={identity=true,size=true,cells=true},identity=0,size=8,cells=__arena_stage_CellsExt.Empty(8)}), listener) end;
 end
 __arena_stage_Arena.prototype = _hx_e();
-__arena_stage_Arena.prototype._stage= nil;
-__arena_stage_Arena.prototype._listener= nil;
+__arena_stage_Arena.prototype.getId = function(self) 
+  local tmp = (function() 
+  local _hx_obj = self._stage;
+  local _hx_fld = 'identity';
+  _hx_obj[_hx_fld] = _hx_obj[_hx_fld]  + 1;
+   return _hx_obj[_hx_fld];
+   end)();
+  do return tmp end
+end
 __arena_stage_Arena.prototype.update = function(self,dt) 
   self:handleEmptyCells();
 end
+__arena_stage_Arena.prototype.spawnBlock = function(self,x,y,kind) 
+  if (self._stage.cells[y][x].block ~= nil) then 
+    self._listener(__arena_stage_ArenaEvent.BlockDespawned(self._stage.cells[y][x].block.id));
+  end;
+  local tmp = self._stage.cells[y];
+  local tmp1 = self:getId();
+  tmp[x].block = _hx_o({__fields__={id=true,x=true,y=true,kind=true},id=tmp1,x=x,y=y,kind=kind});
+  self._listener(__arena_stage_ArenaEvent.BlockSpawned(self._stage.cells[y][x].block));
+end
+__arena_stage_Arena.prototype.lockCell = function(self,x,y) 
+  local fh = self._cells[y][x];
+  fh.lock = fh.lock + 1;
+end
+__arena_stage_Arena.prototype.unlockCell = function(self,x,y) 
+  local fh = self._cells[y][x];
+  fh.lock = fh.lock - 1;
+end
 __arena_stage_Arena.prototype.handleEmptyCells = function(self) 
+  local size = self._stage.size;
+  local cells = self._stage.cells;
+  local _g = 1;
+  while (_g < size) do 
+    _g = _g + 1;
+    local y = _g - 1;
+    local _g = 0;
+    local _hx_continue_2 = false;
+    while (_g < size) do repeat 
+      _g = _g + 1;
+      local x = _g - 1;
+      if (self._cells[y][x].lock ~= 0) then 
+        break;
+      end;
+      if ((cells[y][x].block == nil) or (cells[y - 1][x].block ~= nil)) then 
+        break;
+      end;
+      local block = cells[y][x].block;
+      block.x = x;
+      block.y = y - 1;
+      cells[y - 1][x].block = block;
+      cells[y][x].block = nil;
+      self._listener(__arena_stage_ArenaEvent.BlockMoved(block.id, x, y - 1));until true
+      if _hx_continue_2 then 
+      _hx_continue_2 = false;
+      break;
+      end;
+      
+    end;
+  end;
 end
 
-__arena_stage_Arena.prototype.__class__ =  __arena_stage_Arena
-_hxClasses["arena.stage.ArenaEvent"] = { __ename__ = true, __constructs__ = _hx_tab_array({[0]="Resize","BlockSpawned","BlockDespawned","BlockMoved","BlockKindChanged"},5)}
-__arena_stage_ArenaEvent = _hxClasses["arena.stage.ArenaEvent"];
+__arena_stage_ArenaConst.new = {}
+__arena_stage_ArenaConst.tileCenter = function(x,y) 
+  do return _G.vmath.vector3((x * 92) + 46., (y * 92) + 46., 0) end;
+end
+
 __arena_stage_ArenaEvent.Resize = function(size) local _x = _hx_tab_array({[0]="Resize",0,size,__enum__=__arena_stage_ArenaEvent}, 3); return _x; end 
 __arena_stage_ArenaEvent.BlockSpawned = function(block) local _x = _hx_tab_array({[0]="BlockSpawned",1,block,__enum__=__arena_stage_ArenaEvent}, 3); return _x; end 
 __arena_stage_ArenaEvent.BlockDespawned = function(id) local _x = _hx_tab_array({[0]="BlockDespawned",2,id,__enum__=__arena_stage_ArenaEvent}, 3); return _x; end 
@@ -1226,7 +1035,6 @@ __arena_stage_ArenaEvent.BlockMoved = function(id,x,y) local _x = _hx_tab_array(
 __arena_stage_ArenaEvent.BlockKindChanged = function(id,kind) local _x = _hx_tab_array({[0]="BlockKindChanged",4,id,kind,__enum__=__arena_stage_ArenaEvent}, 4); return _x; end 
 
 __arena_stage_CellsExt.new = {}
-__arena_stage_CellsExt.__name__ = true
 __arena_stage_CellsExt.Empty = function(size) 
   local result = Array.new();
   local _g = 0;
@@ -1244,14 +1052,15 @@ __arena_stage_CellsExt.Empty = function(size)
 end
 
 __defold_CollectionproxyMessages.new = {}
-__defold_CollectionproxyMessages.__name__ = true
 
 __defold_GoMessages.new = {}
-__defold_GoMessages.__name__ = true
 
 __defold_support_Init.new = {}
-__defold_support_Init.__name__ = true
 __defold_support_Init.init = function(exports) 
+  local script = __arena_BlockView.new();
+  exports.arena_BlockView_on_message = function(_self,message_id,message,sender) 
+    script:on_message(_self, message_id, message, sender);
+  end;
   local script = Main.new();
   exports.Main_init = function(_self) 
     script:init(_self);
@@ -1263,22 +1072,17 @@ __defold_support_Init.init = function(exports)
   exports.arena_ArenaScreen_init = function(_self) 
     script:init(_self);
   end;
+  exports.arena_ArenaScreen_final_ = function(_self) 
+    script:final_(_self);
+  end;
   exports.arena_ArenaScreen_update = function(_self,dt) 
     script:update(_self, dt);
   end;
 end
 
 __haxe_IMap.new = {}
-__haxe_IMap.__name__ = true
-
-__haxe_Json.new = {}
-__haxe_Json.__name__ = true
-__haxe_Json.stringify = function(value,replacer,space) 
-  do return __haxe_format_JsonPrinter.print(value, replacer, space) end;
-end
 
 __haxe_Log.new = {}
-__haxe_Log.__name__ = true
 __haxe_Log.formatOutput = function(v,infos) 
   local str = Std.string(v);
   if (infos == nil) then 
@@ -1309,10 +1113,8 @@ end
 __haxe_ds_IntMap.super = function(self) 
   self.h = ({});
 end
-__haxe_ds_IntMap.__name__ = true
 __haxe_ds_IntMap.__interfaces__ = {__haxe_IMap}
 __haxe_ds_IntMap.prototype = _hx_e();
-__haxe_ds_IntMap.prototype.h= nil;
 __haxe_ds_IntMap.prototype.remove = function(self,key) 
   if (self.h[key] == nil) then 
     do return false end;
@@ -1321,309 +1123,6 @@ __haxe_ds_IntMap.prototype.remove = function(self,key)
     do return true end;
   end;
 end
-
-__haxe_ds_IntMap.prototype.__class__ =  __haxe_ds_IntMap
-
-__haxe_ds_StringMap.new = function() 
-  local self = _hx_new(__haxe_ds_StringMap.prototype)
-  __haxe_ds_StringMap.super(self)
-  return self
-end
-__haxe_ds_StringMap.super = function(self) 
-  self.h = ({});
-end
-__haxe_ds_StringMap.__name__ = true
-__haxe_ds_StringMap.__interfaces__ = {__haxe_IMap}
-__haxe_ds_StringMap.prototype = _hx_e();
-__haxe_ds_StringMap.prototype.h= nil;
-__haxe_ds_StringMap.prototype.keys = function(self) 
-  local _gthis = self;
-  local next = _G.next;
-  local cur = next(self.h, nil);
-  do return _hx_o({__fields__={next=true,hasNext=true},next=function(self) 
-    local ret = cur;
-    cur = next(_gthis.h, cur);
-    do return ret end;
-  end,hasNext=function(self) 
-    do return cur ~= nil end;
-  end}) end
-end
-
-__haxe_ds_StringMap.prototype.__class__ =  __haxe_ds_StringMap
-
-__haxe_format_JsonPrinter.new = function(replacer,space) 
-  local self = _hx_new(__haxe_format_JsonPrinter.prototype)
-  __haxe_format_JsonPrinter.super(self,replacer,space)
-  return self
-end
-__haxe_format_JsonPrinter.super = function(self,replacer,space) 
-  self.replacer = _hx_funcToField(replacer);
-  self.indent = space;
-  self.pretty = space ~= nil;
-  self.nind = 0;
-  self.buf = StringBuf.new();
-end
-__haxe_format_JsonPrinter.__name__ = true
-__haxe_format_JsonPrinter.print = function(o,replacer,space) 
-  local printer = __haxe_format_JsonPrinter.new(replacer, space);
-  printer:write("", o);
-  do return _G.table.concat(printer.buf.b) end;
-end
-__haxe_format_JsonPrinter.prototype = _hx_e();
-__haxe_format_JsonPrinter.prototype.buf= nil;
-__haxe_format_JsonPrinter.prototype.replacer= nil;
-__haxe_format_JsonPrinter.prototype.indent= nil;
-__haxe_format_JsonPrinter.prototype.pretty= nil;
-__haxe_format_JsonPrinter.prototype.nind= nil;
-__haxe_format_JsonPrinter.prototype.write = function(self,k,v) 
-  if (self.replacer ~= nil) then 
-    v = self:replacer(k, v);
-  end;
-  local _g = Type.typeof(v);
-  local tmp = _g[1];
-  if (tmp) == 0 then 
-    local _this = self.buf;
-    _G.table.insert(_this.b, "null");
-    _this.length = _this.length + #"null";
-  elseif (tmp) == 1 then 
-    local _this = self.buf;
-    local str = Std.string(v);
-    _G.table.insert(_this.b, str);
-    _this.length = _this.length + #str;
-  elseif (tmp) == 2 then 
-    local v = (function() 
-      local _hx_1
-      if (Math.isFinite(v)) then 
-      _hx_1 = Std.string(v); else 
-      _hx_1 = "null"; end
-      return _hx_1
-    end )();
-    local _this = self.buf;
-    local str = Std.string(v);
-    _G.table.insert(_this.b, str);
-    _this.length = _this.length + #str;
-  elseif (tmp) == 3 then 
-    local _this = self.buf;
-    local str = Std.string(v);
-    _G.table.insert(_this.b, str);
-    _this.length = _this.length + #str;
-  elseif (tmp) == 4 then 
-    self:fieldsString(v, Reflect.fields(v));
-  elseif (tmp) == 5 then 
-    local _this = self.buf;
-    _G.table.insert(_this.b, "\"<fun>\"");
-    _this.length = _this.length + #"\"<fun>\"";
-  elseif (tmp) == 6 then 
-    local _g = _g[2];
-    if (_g == String) then 
-      self:quote(v);
-    else
-      if (_g == Array) then 
-        local v = v;
-        local _this = self.buf;
-        _G.table.insert(_this.b, _G.string.char(91));
-        _this.length = _this.length + 1;
-        local len = v.length;
-        local last = len - 1;
-        local _g = 0;
-        while (_g < len) do 
-          _g = _g + 1;
-          local i = _g - 1;
-          if (i > 0) then 
-            local _this = self.buf;
-            _G.table.insert(_this.b, _G.string.char(44));
-            _this.length = _this.length + 1;
-          else
-            self.nind = self.nind + 1;
-          end;
-          if (self.pretty) then 
-            local _this = self.buf;
-            _G.table.insert(_this.b, _G.string.char(10));
-            _this.length = _this.length + 1;
-          end;
-          if (self.pretty) then 
-            local v = StringTools.lpad("", self.indent, self.nind * #self.indent);
-            local _this = self.buf;
-            local str = Std.string(v);
-            _G.table.insert(_this.b, str);
-            _this.length = _this.length + #str;
-          end;
-          self:write(i, v[i]);
-          if (i == last) then 
-            self.nind = self.nind - 1;
-            if (self.pretty) then 
-              local _this = self.buf;
-              _G.table.insert(_this.b, _G.string.char(10));
-              _this.length = _this.length + 1;
-            end;
-            if (self.pretty) then 
-              local v = StringTools.lpad("", self.indent, self.nind * #self.indent);
-              local _this = self.buf;
-              local str = Std.string(v);
-              _G.table.insert(_this.b, str);
-              _this.length = _this.length + #str;
-            end;
-          end;
-        end;
-        local _this = self.buf;
-        _G.table.insert(_this.b, _G.string.char(93));
-        _this.length = _this.length + 1;
-      else
-        if (_g == __haxe_ds_StringMap) then 
-          local v = v;
-          local o = _hx_e();
-          local k = v:keys();
-          while (k:hasNext()) do 
-            local k = k:next();
-            local ret = v.h[k];
-            if (ret == __haxe_ds_StringMap.tnull) then 
-              ret = nil;
-            end;
-            o[k] = ret;
-          end;
-          local v = o;
-          self:fieldsString(v, Reflect.fields(v));
-        else
-          if (_g == Date) then 
-            self:quote(__lua_Boot.dateStr(v));
-          else
-            self:classString(v);
-          end;
-        end;
-      end;
-    end;
-  elseif (tmp) == 7 then 
-    local _this = self.buf;
-    local str = Std.string(v[1]);
-    _G.table.insert(_this.b, str);
-    _this.length = _this.length + #str;
-  elseif (tmp) == 8 then 
-    local _this = self.buf;
-    _G.table.insert(_this.b, "\"???\"");
-    _this.length = _this.length + #"\"???\""; end;
-end
-__haxe_format_JsonPrinter.prototype.classString = function(self,v) 
-  self:fieldsString(v, Type.getInstanceFields(Type.getClass(v)));
-end
-__haxe_format_JsonPrinter.prototype.fieldsString = function(self,v,fields) 
-  local _this = self.buf;
-  _G.table.insert(_this.b, _G.string.char(123));
-  _this.length = _this.length + 1;
-  local len = fields.length;
-  local last = len - 1;
-  local first = true;
-  local _g = 0;
-  local _hx_continue_1 = false;
-  while (_g < len) do repeat 
-    _g = _g + 1;
-    local i = _g - 1;
-    local f = fields[i];
-    local value = Reflect.field(v, f);
-    if (Reflect.isFunction(value)) then 
-      break;
-    end;
-    if (first) then 
-      self.nind = self.nind + 1;
-      first = false;
-    else
-      local _this = self.buf;
-      _G.table.insert(_this.b, _G.string.char(44));
-      _this.length = _this.length + 1;
-    end;
-    if (self.pretty) then 
-      local _this = self.buf;
-      _G.table.insert(_this.b, _G.string.char(10));
-      _this.length = _this.length + 1;
-    end;
-    if (self.pretty) then 
-      local v = StringTools.lpad("", self.indent, self.nind * #self.indent);
-      local _this = self.buf;
-      local str = Std.string(v);
-      _G.table.insert(_this.b, str);
-      _this.length = _this.length + #str;
-    end;
-    self:quote(f);
-    local _this = self.buf;
-    _G.table.insert(_this.b, _G.string.char(58));
-    _this.length = _this.length + 1;
-    if (self.pretty) then 
-      local _this = self.buf;
-      _G.table.insert(_this.b, _G.string.char(32));
-      _this.length = _this.length + 1;
-    end;
-    self:write(f, value);
-    if (i == last) then 
-      self.nind = self.nind - 1;
-      if (self.pretty) then 
-        local _this = self.buf;
-        _G.table.insert(_this.b, _G.string.char(10));
-        _this.length = _this.length + 1;
-      end;
-      if (self.pretty) then 
-        local v = StringTools.lpad("", self.indent, self.nind * #self.indent);
-        local _this = self.buf;
-        local str = Std.string(v);
-        _G.table.insert(_this.b, str);
-        _this.length = _this.length + #str;
-      end;
-    end;until true
-    if _hx_continue_1 then 
-    _hx_continue_1 = false;
-    break;
-    end;
-    
-  end;
-  local _this = self.buf;
-  _G.table.insert(_this.b, _G.string.char(125));
-  _this.length = _this.length + 1;
-end
-__haxe_format_JsonPrinter.prototype.quote = function(self,s) 
-  local _this = self.buf;
-  _G.table.insert(_this.b, _G.string.char(34));
-  _this.length = _this.length + 1;
-  local i = 0;
-  local length = #s;
-  while (i < length) do 
-    i = i + 1;
-    local c = _G.string.byte(s, (i - 1) + 1);
-    if (c) == 8 then 
-      local _this = self.buf;
-      _G.table.insert(_this.b, "\\b");
-      _this.length = _this.length + #"\\b";
-    elseif (c) == 9 then 
-      local _this = self.buf;
-      _G.table.insert(_this.b, "\\t");
-      _this.length = _this.length + #"\\t";
-    elseif (c) == 10 then 
-      local _this = self.buf;
-      _G.table.insert(_this.b, "\\n");
-      _this.length = _this.length + #"\\n";
-    elseif (c) == 12 then 
-      local _this = self.buf;
-      _G.table.insert(_this.b, "\\f");
-      _this.length = _this.length + #"\\f";
-    elseif (c) == 13 then 
-      local _this = self.buf;
-      _G.table.insert(_this.b, "\\r");
-      _this.length = _this.length + #"\\r";
-    elseif (c) == 34 then 
-      local _this = self.buf;
-      _G.table.insert(_this.b, "\\\"");
-      _this.length = _this.length + #"\\\"";
-    elseif (c) == 92 then 
-      local _this = self.buf;
-      _G.table.insert(_this.b, "\\\\");
-      _this.length = _this.length + #"\\\\";else
-    local _this = self.buf;
-    _G.table.insert(_this.b, _G.string.char(c));
-    _this.length = _this.length + 1; end;
-  end;
-  local _this = self.buf;
-  _G.table.insert(_this.b, _G.string.char(34));
-  _this.length = _this.length + 1;
-end
-
-__haxe_format_JsonPrinter.prototype.__class__ =  __haxe_format_JsonPrinter
 
 __haxe_iterators_ArrayIterator.new = function(array) 
   local self = _hx_new(__haxe_iterators_ArrayIterator.prototype)
@@ -1634,10 +1133,7 @@ __haxe_iterators_ArrayIterator.super = function(self,array)
   self.current = 0;
   self.array = array;
 end
-__haxe_iterators_ArrayIterator.__name__ = true
 __haxe_iterators_ArrayIterator.prototype = _hx_e();
-__haxe_iterators_ArrayIterator.prototype.array= nil;
-__haxe_iterators_ArrayIterator.prototype.current= nil;
 __haxe_iterators_ArrayIterator.prototype.hasNext = function(self) 
   do return self.current < self.array.length end
 end
@@ -1651,175 +1147,14 @@ __haxe_iterators_ArrayIterator.prototype.next = function(self)
    end)()] end
 end
 
-__haxe_iterators_ArrayIterator.prototype.__class__ =  __haxe_iterators_ArrayIterator
-
 __haxe_iterators_ArrayKeyValueIterator.new = function(array) 
-  local self = _hx_new(__haxe_iterators_ArrayKeyValueIterator.prototype)
+  local self = _hx_new()
   __haxe_iterators_ArrayKeyValueIterator.super(self,array)
   return self
 end
 __haxe_iterators_ArrayKeyValueIterator.super = function(self,array) 
   self.array = array;
 end
-__haxe_iterators_ArrayKeyValueIterator.__name__ = true
-__haxe_iterators_ArrayKeyValueIterator.prototype = _hx_e();
-__haxe_iterators_ArrayKeyValueIterator.prototype.array= nil;
-
-__haxe_iterators_ArrayKeyValueIterator.prototype.__class__ =  __haxe_iterators_ArrayKeyValueIterator
-
-__lua_Boot.new = {}
-__lua_Boot.__name__ = true
-__lua_Boot.__instanceof = function(o,cl) 
-  if (cl == nil) then 
-    do return false end;
-  end;
-  local cl1 = cl;
-  if (cl1) == Array then 
-    do return __lua_Boot.isArray(o) end;
-  elseif (cl1) == Bool then 
-    do return _G.type(o) == "boolean" end;
-  elseif (cl1) == Dynamic then 
-    do return o ~= nil end;
-  elseif (cl1) == Float then 
-    do return _G.type(o) == "number" end;
-  elseif (cl1) == Int then 
-    if (_G.type(o) == "number") then 
-      do return _hx_bit_clamp(o) == o end;
-    else
-      do return false end;
-    end;
-  elseif (cl1) == String then 
-    do return _G.type(o) == "string" end;
-  elseif (cl1) == _G.table then 
-    do return _G.type(o) == "table" end;
-  elseif (cl1) == __lua_Thread then 
-    do return _G.type(o) == "thread" end;
-  elseif (cl1) == __lua_UserData then 
-    do return _G.type(o) == "userdata" end;else
-  if (((o ~= nil) and (_G.type(o) == "table")) and (_G.type(cl) == "table")) then 
-    local tmp;
-    if (__lua_Boot.__instanceof(o, Array)) then 
-      tmp = Array;
-    else
-      if (__lua_Boot.__instanceof(o, String)) then 
-        tmp = String;
-      else
-        local cl = o.__class__;
-        tmp = (function() 
-          local _hx_1
-          if (cl ~= nil) then 
-          _hx_1 = cl; else 
-          _hx_1 = nil; end
-          return _hx_1
-        end )();
-      end;
-    end;
-    if (__lua_Boot.extendsOrImplements(tmp, cl)) then 
-      do return true end;
-    end;
-    if ((function() 
-      local _hx_2
-      if (cl == Class) then 
-      _hx_2 = o.__name__ ~= nil; else 
-      _hx_2 = false; end
-      return _hx_2
-    end )()) then 
-      do return true end;
-    end;
-    if ((function() 
-      local _hx_3
-      if (cl == Enum) then 
-      _hx_3 = o.__ename__ ~= nil; else 
-      _hx_3 = false; end
-      return _hx_3
-    end )()) then 
-      do return true end;
-    end;
-    do return o.__enum__ == cl end;
-  else
-    do return false end;
-  end; end;
-end
-__lua_Boot.isArray = function(o) 
-  if (_G.type(o) == "table") then 
-    if ((o.__enum__ == nil) and (_G.getmetatable(o) ~= nil)) then 
-      do return _G.getmetatable(o).__index == Array.prototype end;
-    else
-      do return false end;
-    end;
-  else
-    do return false end;
-  end;
-end
-__lua_Boot.dateStr = function(date) 
-  local m = date:getMonth() + 1;
-  local d = date:getDate();
-  local h = date:getHours();
-  local mi = date:getMinutes();
-  local s = date:getSeconds();
-  do return Std.string(Std.string(Std.string(Std.string(Std.string(Std.string(Std.string(Std.string(Std.string(Std.string(date:getFullYear()) .. Std.string("-")) .. Std.string(((function() 
-    local _hx_1
-    if (m < 10) then 
-    _hx_1 = Std.string("0") .. Std.string(m); else 
-    _hx_1 = Std.string("") .. Std.string(m); end
-    return _hx_1
-  end )()))) .. Std.string("-")) .. Std.string(((function() 
-    local _hx_2
-    if (d < 10) then 
-    _hx_2 = Std.string("0") .. Std.string(d); else 
-    _hx_2 = Std.string("") .. Std.string(d); end
-    return _hx_2
-  end )()))) .. Std.string(" ")) .. Std.string(((function() 
-    local _hx_3
-    if (h < 10) then 
-    _hx_3 = Std.string("0") .. Std.string(h); else 
-    _hx_3 = Std.string("") .. Std.string(h); end
-    return _hx_3
-  end )()))) .. Std.string(":")) .. Std.string(((function() 
-    local _hx_4
-    if (mi < 10) then 
-    _hx_4 = Std.string("0") .. Std.string(mi); else 
-    _hx_4 = Std.string("") .. Std.string(mi); end
-    return _hx_4
-  end )()))) .. Std.string(":")) .. Std.string(((function() 
-    local _hx_5
-    if (s < 10) then 
-    _hx_5 = Std.string("0") .. Std.string(s); else 
-    _hx_5 = Std.string("") .. Std.string(s); end
-    return _hx_5
-  end )())) end;
-end
-__lua_Boot.extendsOrImplements = function(cl1,cl2) 
-  while (true) do 
-    if ((cl1 == nil) or (cl2 == nil)) then 
-      do return false end;
-    else
-      if (cl1 == cl2) then 
-        do return true end;
-      else
-        if (cl1.__interfaces__ ~= nil) then 
-          local intf = cl1.__interfaces__;
-          local _g = 1;
-          local _g1 = _hx_table.maxn(intf) + 1;
-          while (_g < _g1) do 
-            _g = _g + 1;
-            local i = _g - 1;
-            if (__lua_Boot.extendsOrImplements(intf[i], cl2)) then 
-              do return true end;
-            end;
-          end;
-        end;
-      end;
-    end;
-    cl1 = cl1.__super__;
-  end;
-end
-
-__lua_UserData.new = {}
-__lua_UserData.__name__ = true
-
-__lua_Thread.new = {}
-__lua_Thread.__name__ = true
 if _hx_bit_raw then
     _hx_bit_clamp = function(v)
     if v <= 2147483647 and v >= -2147483648 then
@@ -1851,8 +1186,6 @@ _hx_array_mt.__index = Array.prototype
 
 local _hx_static_init = function()
   
-  String.__name__ = true;
-  Array.__name__ = true;
   _hxdefold_ = _hxdefold_ or {}
   __defold_support_Init.init(_hxdefold_);MainRes.screen = _G.msg.url("main:/screen");
   
@@ -1865,6 +1198,8 @@ local _hx_static_init = function()
   __arena_ArenaScreenRes.arena_block_factory = _G.msg.url("arena:/arena#block_factory");
   
   __arena_BlockViewMessages.setup = _G.hash("block_view_setup");
+  
+  __arena_BlockViewMessages.move = _G.hash("block_view_move");
   
   __defold_CollectionproxyMessages.async_load = _G.hash("async_load");
   
@@ -1882,46 +1217,9 @@ local _hx_static_init = function()
   
   __haxe_ds_IntMap.tnull = ({});
   
-  __haxe_ds_StringMap.tnull = ({});
   
-  
-end
-
-_hx_funcToField = function(f)
-  if type(f) == 'function' then
-    return function(self,...)
-      return f(...)
-    end
-  else
-    return f
-  end
 end
 
 _hx_print = print or (function() end)
-
-_hx_table = {}
-_hx_table.pack = _G.table.pack or function(...)
-    return {...}
-end
-_hx_table.unpack = _G.table.unpack or _G.unpack
-_hx_table.maxn = _G.table.maxn or function(t)
-  local maxn=0;
-  for i in pairs(t) do
-    maxn=type(i)=='number'and i>maxn and i or maxn
-  end
-  return maxn
-end;
-
-_hx_wrap_if_string_field = function(o, fld)
-  if _G.type(o) == 'string' then
-    if fld == 'length' then
-      return _G.string.len(o)
-    else
-      return String.prototype[fld]
-    end
-  else
-    return o[fld]
-  end
-end
 
 _hx_static_init();
