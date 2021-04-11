@@ -1,0 +1,13 @@
+# where to look for Haxe sources
+-cp src
+-cp src-gen
+-lua ./../ColorOpposite/main.lua
+-lib hxdefold
+-dce full
+-D analyzer-optimize
+--macro include("", true, null, ["src"])
+
+# override to specify another Defold project root directory
+-D hxdefold-projectroot=./../ColorOpposite
+# override to specify another output directory for generated script files (relative to the project root)
+-D hxdefold-scriptdir=scripts
