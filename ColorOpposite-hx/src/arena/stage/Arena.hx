@@ -44,10 +44,10 @@ class Arena {
         }
 
         _listener.call(Resize(_stage.size));
-        for (i in 0..._stage.size) {
-            spawnBlock(i, 6, Color1, Swap);
-            spawnBlock(i, i, Color1, Swap);
-        }
+        // for (i in 0..._stage.size) {
+        //     spawnBlock(i, 6, Color1, Swap);
+        //     spawnBlock(i, i, Color1, Swap);
+        // }
     }
 
     public function getId<T>(): Identity<T> {

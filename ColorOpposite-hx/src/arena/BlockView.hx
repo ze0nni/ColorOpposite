@@ -4,7 +4,9 @@ import defold.Go.GoEasing;
 import defold.Go.GoPlayback;
 
 typedef BlockViewData = {
-    
+    var isCellLocked: Bool;
+    var lockedCellX: Int;
+    var lockedCellY: Int;
 }
 
 @:publicFields
@@ -24,17 +26,20 @@ class BlockView extends Script<BlockViewData> {
                     
                     case Generate:
                         Go.set_position(ArenaConst.tileCenter(message.block.x, message.block.y+1));
+                        lockCell(self, message.block.x, message.block.y);
                         Go.animate(
                             ".",
                             "position",
                             GoPlayback.PLAYBACK_ONCE_FORWARD,
                             ArenaConst.tileCenter(message.block.x, message.block.y),
                             GoEasing.EASING_LINEAR,
-                            0.15);
+                            0.15,
+                            0,
+                            move_done);
                         }
 
             case BlockViewMessages.move:
-                ArenaScreen.ArenaInst.lockCell(message.x, message.y);
+                lockCell(self, message.x, message.y);
                 Go.animate(
                     ".",
                     "position",
@@ -43,9 +48,27 @@ class BlockView extends Script<BlockViewData> {
                     GoEasing.EASING_LINEAR,
                     0.15,
                     0,
-                    function (_,_,_) {
-                        ArenaScreen.ArenaInst.unlockCell(message.x, message.y);
-                    });
+                    move_done);
+        }
+    }
+
+    function move_done(self:BlockViewData, _, _) {
+        trace(1);
+        unlockCell(self);
+    }
+
+    inline function lockCell(self:BlockViewData, x: Int, y: Int) {
+        unlockCell(self);
+        self.isCellLocked = true;
+        self.lockedCellX = x;
+        self.lockedCellY = y;
+        ArenaScreen.ArenaInst.lockCell(x, y);
+    }
+
+    inline function unlockCell(self:BlockViewData) {
+        if (self.isCellLocked) {
+            self.isCellLocked = false;
+            ArenaScreen.ArenaInst.unlockCell(self.lockedCellX, self.lockedCellY);
         }
     }
 }

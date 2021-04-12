@@ -916,17 +916,41 @@ end
 __arena_BlockView.prototype = _hx_e();
 __arena_BlockView.prototype.on_message = function(self,_self,message_id,message,sender) 
   if (message_id) == __arena_BlockViewMessages.move then 
-    __arena_ArenaScreen.ArenaInst:lockCell(message.x, message.y);
-    _G.go.animate(".", "position", _G.go.PLAYBACK_ONCE_FORWARD, __arena_stage_ArenaConst.tileCenter(message.x, message.y), _G.go.EASING_LINEAR, 0.15, 0, function(_,_1,_2) 
-      __arena_ArenaScreen.ArenaInst:unlockCell(message.x, message.y);
-    end);
+    local x = message.x;
+    local y = message.y;
+    if (_self.isCellLocked) then 
+      _self.isCellLocked = false;
+      __arena_ArenaScreen.ArenaInst:unlockCell(_self.lockedCellX, _self.lockedCellY);
+    end;
+    _self.isCellLocked = true;
+    _self.lockedCellX = x;
+    _self.lockedCellY = y;
+    __arena_ArenaScreen.ArenaInst:lockCell(x, y);
+    _G.go.animate(".", "position", _G.go.PLAYBACK_ONCE_FORWARD, __arena_stage_ArenaConst.tileCenter(message.x, message.y), _G.go.EASING_LINEAR, 0.15, 0, _hx_bind(self,self.move_done));
   elseif (message_id) == __arena_BlockViewMessages.setup then 
     local _g = message.reason;
     if (_g) == 0 then 
       _G.go.set_position(__arena_stage_ArenaConst.tileCenter(message.block.x, message.block.y + 1));
-      _G.go.animate(".", "position", _G.go.PLAYBACK_ONCE_FORWARD, __arena_stage_ArenaConst.tileCenter(message.block.x, message.block.y), _G.go.EASING_LINEAR, 0.15);
+      local x = message.block.x;
+      local y = message.block.y;
+      if (_self.isCellLocked) then 
+        _self.isCellLocked = false;
+        __arena_ArenaScreen.ArenaInst:unlockCell(_self.lockedCellX, _self.lockedCellY);
+      end;
+      _self.isCellLocked = true;
+      _self.lockedCellX = x;
+      _self.lockedCellY = y;
+      __arena_ArenaScreen.ArenaInst:lockCell(x, y);
+      _G.go.animate(".", "position", _G.go.PLAYBACK_ONCE_FORWARD, __arena_stage_ArenaConst.tileCenter(message.block.x, message.block.y), _G.go.EASING_LINEAR, 0.15, 0, _hx_bind(self,self.move_done));
     elseif (_g) == 1 then 
       _G.go.set_position(__arena_stage_ArenaConst.tileCenter(message.block.x, message.block.y)); end; end;
+end
+__arena_BlockView.prototype.move_done = function(self,_self,_,_1) 
+  __haxe_Log.trace(1, _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/arena/BlockView.hx",lineNumber=56,className="arena.BlockView",methodName="move_done"}));
+  if (_self.isCellLocked) then 
+    _self.isCellLocked = false;
+    __arena_ArenaScreen.ArenaInst:unlockCell(_self.lockedCellX, _self.lockedCellY);
+  end;
 end
 __arena_BlockView.__super__ = __defold_support_Script
 setmetatable(__arena_BlockView.prototype,{__index=__defold_support_Script.prototype})
@@ -953,14 +977,6 @@ __arena_stage_Arena.super = function(self,stage,listener)
     end;
   end;
   self._listener(__arena_stage_ArenaEvent.Resize(self._stage.size));
-  local _g = 0;
-  local _g1 = self._stage.size;
-  while (_g < _g1) do 
-    _g = _g + 1;
-    local i = _g - 1;
-    self:spawnBlock(i, 6, 1, 1);
-    self:spawnBlock(i, i, 1, 1);
-  end;
 end
 __arena_stage_Arena.Empty = function(listener) 
   do return __arena_stage_Arena.new(_hx_o({__fields__={identity=true,size=true,cells=true},identity=0,size=8,cells=__arena_stage_CellsExt.Empty(8)}), listener) end;
@@ -1246,6 +1262,21 @@ local _hx_static_init = function()
   __haxe_ds_IntMap.tnull = ({});
   
   
+end
+
+_hx_bind = function(o,m)
+  if m == nil then return nil end;
+  local f;
+  if o._hx__closures == nil then
+    _G.rawset(o, '_hx__closures', {});
+  else
+    f = o._hx__closures[m];
+  end
+  if (f == nil) then
+    f = function(...) return m(o, ...) end;
+    o._hx__closures[m] = f;
+  end
+  return f;
 end
 
 _hx_print = print or (function() end)
