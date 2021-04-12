@@ -20,6 +20,8 @@ class BlockView extends Script<BlockViewData> {
     override function on_message<TMessage>(self:BlockViewData, message_id:Message<TMessage>, message:TMessage, sender:Url) {
         switch (message_id) {
             case BlockViewMessages.setup:
+                setSprite(self, message.block.kind);
+
                 switch (message.reason) {
                     case Swap:
                         Go.set_position(ArenaConst.tileCenter(message.block.x, message.block.y));
@@ -53,7 +55,6 @@ class BlockView extends Script<BlockViewData> {
     }
 
     function move_done(self:BlockViewData, _, _) {
-        trace(1);
         unlockCell(self);
     }
 
@@ -70,5 +71,20 @@ class BlockView extends Script<BlockViewData> {
             self.isCellLocked = false;
             ArenaScreen.ArenaInst.unlockCell(self.lockedCellX, self.lockedCellY);
         }
+    }
+
+    function setSprite(self:BlockViewData, kind: BlockKind) {
+        var image;
+        switch (kind) {
+            case None:
+                return;
+            case Color1: image = ArenaAtlasRes.Jelly_1;
+            case Color2: image = ArenaAtlasRes.Jelly_2;
+            case Color3: image = ArenaAtlasRes.Jelly_3;
+            case Color4: image = ArenaAtlasRes.Jelly_4;
+            case Color5: image = ArenaAtlasRes.Jelly_5;
+            case Color6: image = ArenaAtlasRes.Jelly_6;
+        }
+        Sprite.play_flipbook(BlockViewRes.sprite, image);
     }
 }

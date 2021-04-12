@@ -24,8 +24,13 @@ class Arena {
     }
 
     var _stage: ArenaStage;
+    
+    var _cellsLocks: Int = 0;
     var _cells: Array<Array<CellContext>>;
+
     var _listener: ArenaListener;
+
+    private static var Colors: Array<BlockKind> = [Color1, Color2, Color3, Color4, Color5, Color6];
 
     public function new(stage: ArenaStage, listener: ArenaListener) {
         _stage = stage;
@@ -44,14 +49,21 @@ class Arena {
         }
 
         _listener.call(Resize(_stage.size));
-        // for (i in 0..._stage.size) {
-        //     spawnBlock(i, 6, Color1, Swap);
-        //     spawnBlock(i, i, Color1, Swap);
-        // }
     }
 
     public function getId<T>(): Identity<T> {
         return cast ++_stage.identity;
+    }
+
+    public function randomIntRange(min: Int, max: Int): Int {
+        return Std.int(Math.random(min, max));
+    }
+
+    public function peekRandom<T>(array: Array<T>): T {
+        if (array.length == 0) {
+            throw "Empty array";
+        }
+        return array[randomIntRange(0, array.length-1)];
     }
 
     public function update(dt: Float) {
@@ -74,10 +86,12 @@ class Arena {
 
     public function lockCell(x: Int, y: Int) {
         _cells[y][x].lock++;
+        _cellsLocks++;
     }
 
     public function unlockCell(x: Int, y: Int) {
         _cells[y][x].lock--;
+        _cellsLocks--;
     }
 
     inline function IsFree(x: Int, y: Int): Bool {
@@ -94,7 +108,8 @@ class Arena {
             if (_stage.cells[top][x].block != null) {
                 continue;
             }
-            spawnBlock(x, top, Color1, Generate);
+            var color = peekRandom(Colors);
+            spawnBlock(x, top, color, Generate);
         }
     }
 

@@ -46,8 +46,6 @@ class Main extends defold.support.Script<MainData> {
 		Msg.post(".", GoMessages.acquire_input_focus);
 		Msg.post("@render:", use_fixed_fit_projection, { near : -1, far : 1 });
 
-		trace(Msg.url());
-
 		ArenaScreen.Enter();
 	}
 

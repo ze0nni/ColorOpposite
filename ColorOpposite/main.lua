@@ -203,10 +203,12 @@ local Math = _hx_e()
 local ScreenMessages = _hx_e()
 local String = _hx_e()
 local Std = _hx_e()
+__arena_ArenaAtlasRes = _hx_e()
 __arena_ArenaScreen = _hx_e()
 __arena_ArenaScreenRes = _hx_e()
 __arena_BlockViewMessages = _hx_e()
 __arena_BlockView = _hx_e()
+__arena_BlockViewRes = _hx_e()
 __arena_stage_Arena = _hx_e()
 __arena_stage_ArenaConst = _hx_e()
 __arena_stage_ArenaEvent = _hx_e()
@@ -215,10 +217,15 @@ __defold_CollectionproxyMessages = _hx_e()
 __defold_GoMessages = _hx_e()
 __defold_support_Init = _hx_e()
 __haxe_IMap = _hx_e()
-__haxe_Log = _hx_e()
+__haxe_Exception = _hx_e()
+__haxe_NativeStackTrace = _hx_e()
+__haxe_ValueException = _hx_e()
 __haxe_ds_IntMap = _hx_e()
 __haxe_iterators_ArrayIterator = _hx_e()
 __haxe_iterators_ArrayKeyValueIterator = _hx_e()
+__lua_Boot = _hx_e()
+__lua_UserData = _hx_e()
+__lua_Thread = _hx_e()
 
 local _hx_bind, _hx_bit, _hx_staticToInstance, _hx_funcToField, _hx_maxn, _hx_print, _hx_apply_self, _hx_box_mr, _hx_bit_clamp, _hx_table, _hx_bit_raw
 local _hx_pcall_default = {};
@@ -232,6 +239,7 @@ end
 Array.super = function(self) 
   _hx_tab_array(self, 0);
 end
+Array.__name__ = true
 Array.prototype = _hx_e();
 Array.prototype.concat = function(self,a) 
   local _g = _hx_tab_array({}, 0);
@@ -534,13 +542,19 @@ Array.prototype.resize = function(self,len)
   end;
 end
 
+Array.prototype.__class__ =  Array
+
 __defold_support_Script.new = function() 
-  local self = _hx_new()
+  local self = _hx_new(__defold_support_Script.prototype)
   __defold_support_Script.super(self)
   return self
 end
 __defold_support_Script.super = function(self) 
 end
+__defold_support_Script.__name__ = true
+__defold_support_Script.prototype = _hx_e();
+
+__defold_support_Script.prototype.__class__ =  __defold_support_Script
 
 Main.new = function() 
   local self = _hx_new(Main.prototype)
@@ -551,6 +565,7 @@ Main.super = function(self)
   self.use_fixed_fit_projection = _G.hash("use_fixed_fit_projection");
   __defold_support_Script.super(self);
 end
+Main.__name__ = true
 Main.gotoScreen = function(factory) 
   _G.msg.post(MainRes.screen, ScreenMessages.goto_screen, _hx_o({__fields__={screen=true},screen=factory}));
 end
@@ -560,7 +575,6 @@ Main.prototype.init = function(self,_self)
   Main.DISPLAY_HEIGHT = Std.parseInt(_G.sys.get_config("display.height"));
   _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
   _G.msg.post("@render:", self.use_fixed_fit_projection, _hx_o({__fields__={near=true,far=true},near=-1,far=1}));
-  __haxe_Log.trace(_G.msg.url(), _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Main.hx",lineNumber=49,className="Main",methodName="init"}));
   __arena_ArenaScreen.Enter();
 end
 Main.prototype.on_message = function(self,_self,message_id,message,sender) 
@@ -576,12 +590,16 @@ Main.prototype.on_message = function(self,_self,message_id,message,sender)
     _G.msg.post(sender, __defold_CollectionproxyMessages.init);
     _G.msg.post(sender, __defold_CollectionproxyMessages.enable); end;
 end
+
+Main.prototype.__class__ =  Main
 Main.__super__ = __defold_support_Script
 setmetatable(Main.prototype,{__index=__defold_support_Script.prototype})
 
 MainRes.new = {}
+MainRes.__name__ = true
 
 Math.new = {}
+Math.__name__ = true
 Math.isNaN = function(f) 
   do return f ~= f end;
 end
@@ -601,6 +619,7 @@ Math.min = function(a,b)
 end
 
 ScreenMessages.new = {}
+ScreenMessages.__name__ = true
 
 String.new = function(string) 
   local self = _hx_new(String.prototype)
@@ -610,6 +629,7 @@ String.new = function(string)
 end
 String.super = function(self,string) 
 end
+String.__name__ = true
 String.__index = function(s,k) 
   if (k == "length") then 
     do return _G.string.len(s) end;
@@ -779,7 +799,10 @@ String.prototype.substr = function(self,pos,len)
   do return _G.string.sub(self, pos + 1, pos + len) end
 end
 
+String.prototype.__class__ =  String
+
 Std.new = {}
+Std.__name__ = true
 Std.string = function(s) 
   do return _hx_tostring(s, 0) end;
 end
@@ -835,6 +858,9 @@ Std.parseInt = function(x)
   end;
 end
 
+__arena_ArenaAtlasRes.new = {}
+__arena_ArenaAtlasRes.__name__ = true
+
 __arena_ArenaScreen.new = function() 
   local self = _hx_new(__arena_ArenaScreen.prototype)
   __arena_ArenaScreen.super(self)
@@ -843,6 +869,7 @@ end
 __arena_ArenaScreen.super = function(self) 
   __defold_support_Script.super(self);
 end
+__arena_ArenaScreen.__name__ = true
 __arena_ArenaScreen.Enter = function() 
   Main.gotoScreen(MainRes.screen_collection_proxy_arena);
 end
@@ -898,12 +925,16 @@ __arena_ArenaScreen.prototype.onArenaEvent = function(self,_self,event)
     end;
   elseif (tmp) == 4 then  end;
 end
+
+__arena_ArenaScreen.prototype.__class__ =  __arena_ArenaScreen
 __arena_ArenaScreen.__super__ = __defold_support_Script
 setmetatable(__arena_ArenaScreen.prototype,{__index=__defold_support_Script.prototype})
 
 __arena_ArenaScreenRes.new = {}
+__arena_ArenaScreenRes.__name__ = true
 
 __arena_BlockViewMessages.new = {}
+__arena_BlockViewMessages.__name__ = true
 
 __arena_BlockView.new = function() 
   local self = _hx_new(__arena_BlockView.prototype)
@@ -913,6 +944,7 @@ end
 __arena_BlockView.super = function(self) 
   __defold_support_Script.super(self);
 end
+__arena_BlockView.__name__ = true
 __arena_BlockView.prototype = _hx_e();
 __arena_BlockView.prototype.on_message = function(self,_self,message_id,message,sender) 
   if (message_id) == __arena_BlockViewMessages.move then 
@@ -928,6 +960,7 @@ __arena_BlockView.prototype.on_message = function(self,_self,message_id,message,
     __arena_ArenaScreen.ArenaInst:lockCell(x, y);
     _G.go.animate(".", "position", _G.go.PLAYBACK_ONCE_FORWARD, __arena_stage_ArenaConst.tileCenter(message.x, message.y), _G.go.EASING_LINEAR, 0.15, 0, _hx_bind(self,self.move_done));
   elseif (message_id) == __arena_BlockViewMessages.setup then 
+    self:setSprite(_self, message.block.kind);
     local _g = message.reason;
     if (_g) == 0 then 
       _G.go.set_position(__arena_stage_ArenaConst.tileCenter(message.block.x, message.block.y + 1));
@@ -946,14 +979,36 @@ __arena_BlockView.prototype.on_message = function(self,_self,message_id,message,
       _G.go.set_position(__arena_stage_ArenaConst.tileCenter(message.block.x, message.block.y)); end; end;
 end
 __arena_BlockView.prototype.move_done = function(self,_self,_,_1) 
-  __haxe_Log.trace(1, _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/arena/BlockView.hx",lineNumber=56,className="arena.BlockView",methodName="move_done"}));
   if (_self.isCellLocked) then 
     _self.isCellLocked = false;
     __arena_ArenaScreen.ArenaInst:unlockCell(_self.lockedCellX, _self.lockedCellY);
   end;
 end
+__arena_BlockView.prototype.setSprite = function(self,_self,kind) 
+  local image;
+  if (kind) == 0 then 
+    do return end;
+  elseif (kind) == 1 then 
+    image = __arena_ArenaAtlasRes.Jelly_1;
+  elseif (kind) == 2 then 
+    image = __arena_ArenaAtlasRes.Jelly_2;
+  elseif (kind) == 3 then 
+    image = __arena_ArenaAtlasRes.Jelly_3;
+  elseif (kind) == 4 then 
+    image = __arena_ArenaAtlasRes.Jelly_4;
+  elseif (kind) == 5 then 
+    image = __arena_ArenaAtlasRes.Jelly_5;
+  elseif (kind) == 6 then 
+    image = __arena_ArenaAtlasRes.Jelly_6; end;
+  _G.sprite.play_flipbook(__arena_BlockViewRes.sprite, image);
+end
+
+__arena_BlockView.prototype.__class__ =  __arena_BlockView
 __arena_BlockView.__super__ = __defold_support_Script
 setmetatable(__arena_BlockView.prototype,{__index=__defold_support_Script.prototype})
+
+__arena_BlockViewRes.new = {}
+__arena_BlockViewRes.__name__ = true
 
 __arena_stage_Arena.new = function(stage,listener) 
   local self = _hx_new(__arena_stage_Arena.prototype)
@@ -961,6 +1016,7 @@ __arena_stage_Arena.new = function(stage,listener)
   return self
 end
 __arena_stage_Arena.super = function(self,stage,listener) 
+  self._cellsLocks = 0;
   self._stage = stage;
   self._listener = listener;
   local size = self._stage.size;
@@ -978,6 +1034,7 @@ __arena_stage_Arena.super = function(self,stage,listener)
   end;
   self._listener(__arena_stage_ArenaEvent.Resize(self._stage.size));
 end
+__arena_stage_Arena.__name__ = true
 __arena_stage_Arena.Empty = function(listener) 
   do return __arena_stage_Arena.new(_hx_o({__fields__={identity=true,size=true,cells=true},identity=0,size=8,cells=__arena_stage_CellsExt.Empty(8)}), listener) end;
 end
@@ -990,6 +1047,15 @@ __arena_stage_Arena.prototype.getId = function(self)
    return _hx_obj[_hx_fld];
    end)();
   do return tmp end
+end
+__arena_stage_Arena.prototype.randomIntRange = function(self,min,max) 
+  do return Std.int(_G.math.random(min, max)) end
+end
+__arena_stage_Arena.prototype.peekRandom = function(self,array) 
+  if (array.length == 0) then 
+    _G.error(__haxe_Exception.thrown("Empty array"),0);
+  end;
+  do return array[self:randomIntRange(0, array.length - 1)] end
 end
 __arena_stage_Arena.prototype.update = function(self,dt) 
   self:handleGenerateBlocks();
@@ -1007,10 +1073,12 @@ end
 __arena_stage_Arena.prototype.lockCell = function(self,x,y) 
   local fh = self._cells[y][x];
   fh.lock = fh.lock + 1;
+  self._cellsLocks = self._cellsLocks + 1;
 end
 __arena_stage_Arena.prototype.unlockCell = function(self,x,y) 
   local fh = self._cells[y][x];
   fh.lock = fh.lock - 1;
+  self._cellsLocks = self._cellsLocks - 1;
 end
 __arena_stage_Arena.prototype.handleGenerateBlocks = function(self) 
   local size = self._stage.size;
@@ -1026,7 +1094,7 @@ __arena_stage_Arena.prototype.handleGenerateBlocks = function(self)
     if (self._stage.cells[top][x].block ~= nil) then 
       break;
     end;
-    self:spawnBlock(x, top, 1, 0);until true
+    self:spawnBlock(x, top, self:peekRandom(__arena_stage_Arena.Colors), 0);until true
     if _hx_continue_1 then 
     _hx_continue_1 = false;
     break;
@@ -1067,11 +1135,15 @@ __arena_stage_Arena.prototype.handleEmptyCells = function(self)
   end;
 end
 
+__arena_stage_Arena.prototype.__class__ =  __arena_stage_Arena
+
 __arena_stage_ArenaConst.new = {}
+__arena_stage_ArenaConst.__name__ = true
 __arena_stage_ArenaConst.tileCenter = function(x,y) 
   do return _G.vmath.vector3((x * 92) + 46., (y * 92) + 46., 0) end;
 end
-
+_hxClasses["arena.stage.ArenaEvent"] = { __ename__ = true, __constructs__ = _hx_tab_array({[0]="Resize","BlockSpawned","BlockDespawned","BlockMoved","BlockKindChanged"},5)}
+__arena_stage_ArenaEvent = _hxClasses["arena.stage.ArenaEvent"];
 __arena_stage_ArenaEvent.Resize = function(size) local _x = _hx_tab_array({[0]="Resize",0,size,__enum__=__arena_stage_ArenaEvent}, 3); return _x; end 
 __arena_stage_ArenaEvent.BlockSpawned = function(block,reason) local _x = _hx_tab_array({[0]="BlockSpawned",1,block,reason,__enum__=__arena_stage_ArenaEvent}, 4); return _x; end 
 __arena_stage_ArenaEvent.BlockDespawned = function(id) local _x = _hx_tab_array({[0]="BlockDespawned",2,id,__enum__=__arena_stage_ArenaEvent}, 3); return _x; end 
@@ -1079,6 +1151,7 @@ __arena_stage_ArenaEvent.BlockMoved = function(id,x,y) local _x = _hx_tab_array(
 __arena_stage_ArenaEvent.BlockKindChanged = function(id,kind) local _x = _hx_tab_array({[0]="BlockKindChanged",4,id,kind,__enum__=__arena_stage_ArenaEvent}, 4); return _x; end 
 
 __arena_stage_CellsExt.new = {}
+__arena_stage_CellsExt.__name__ = true
 __arena_stage_CellsExt.Empty = function(size) 
   local result = Array.new();
   local _g = 0;
@@ -1096,10 +1169,13 @@ __arena_stage_CellsExt.Empty = function(size)
 end
 
 __defold_CollectionproxyMessages.new = {}
+__defold_CollectionproxyMessages.__name__ = true
 
 __defold_GoMessages.new = {}
+__defold_GoMessages.__name__ = true
 
 __defold_support_Init.new = {}
+__defold_support_Init.__name__ = true
 __defold_support_Init.init = function(exports) 
   local script = __arena_BlockView.new();
   exports.arena_BlockView_on_message = function(_self,message_id,message,sender) 
@@ -1125,29 +1201,95 @@ __defold_support_Init.init = function(exports)
 end
 
 __haxe_IMap.new = {}
+__haxe_IMap.__name__ = true
 
-__haxe_Log.new = {}
-__haxe_Log.formatOutput = function(v,infos) 
-  local str = Std.string(v);
-  if (infos == nil) then 
-    do return str end;
+__haxe_Exception.new = function(message,previous,native) 
+  local self = _hx_new(__haxe_Exception.prototype)
+  __haxe_Exception.super(self,message,previous,native)
+  return self
+end
+__haxe_Exception.super = function(self,message,previous,native) 
+  self.__skipStack = 0;
+  self.__exceptionMessage = message;
+  self.__previousException = previous;
+  if (native ~= nil) then 
+    self.__nativeException = native;
+    self.__nativeStack = __haxe_NativeStackTrace.exceptionStack();
+  else
+    self.__nativeException = self;
+    self.__nativeStack = __haxe_NativeStackTrace.callStack();
+    self.__skipStack = 1;
   end;
-  local pstr = Std.string(Std.string(infos.fileName) .. Std.string(":")) .. Std.string(infos.lineNumber);
-  if (infos.customParams ~= nil) then 
-    local _g = 0;
-    local _g1 = infos.customParams;
-    while (_g < _g1.length) do 
-      local v = _g1[_g];
-      _g = _g + 1;
-      str = Std.string(str) .. Std.string((Std.string(", ") .. Std.string(Std.string(v))));
+end
+__haxe_Exception.__name__ = true
+__haxe_Exception.thrown = function(value) 
+  if (__lua_Boot.__instanceof(value, __haxe_Exception)) then 
+    do return value:get_native() end;
+  else
+    local e = __haxe_ValueException.new(value);
+    e.__skipStack = e.__skipStack + 1;
+    do return e end;
+  end;
+end
+__haxe_Exception.prototype = _hx_e();
+__haxe_Exception.prototype.get_native = function(self) 
+  do return self.__nativeException end
+end
+
+__haxe_Exception.prototype.__class__ =  __haxe_Exception
+
+__haxe_NativeStackTrace.new = {}
+__haxe_NativeStackTrace.__name__ = true
+__haxe_NativeStackTrace.saveStack = function(exception) 
+end
+__haxe_NativeStackTrace.callStack = function() 
+  local _g = debug.traceback();
+  if (_g == nil) then 
+    do return _hx_tab_array({}, 0) end;
+  else
+    local idx = 1;
+    local ret = _hx_tab_array({}, 0);
+    while (idx ~= nil) do 
+      local newidx = 0;
+      if (#"\n" > 0) then 
+        newidx = _G.string.find(_g, "\n", idx, true);
+      else
+        if (idx >= #_g) then 
+          newidx = nil;
+        else
+          newidx = idx + 1;
+        end;
+      end;
+      if (newidx ~= nil) then 
+        ret:push(_G.string.sub(_g, idx, newidx - 1));
+        idx = newidx + #"\n";
+      else
+        ret:push(_G.string.sub(_g, idx, #_g));
+        idx = nil;
+      end;
     end;
+    do return ret:slice(3) end;
   end;
-  do return Std.string(Std.string(pstr) .. Std.string(": ")) .. Std.string(str) end;
 end
-__haxe_Log.trace = function(v,infos) 
-  local str = __haxe_Log.formatOutput(v, infos);
-  _hx_print(str);
+__haxe_NativeStackTrace.exceptionStack = function() 
+  do return _hx_tab_array({}, 0) end;
 end
+
+__haxe_ValueException.new = function(value,previous,native) 
+  local self = _hx_new(__haxe_ValueException.prototype)
+  __haxe_ValueException.super(self,value,previous,native)
+  return self
+end
+__haxe_ValueException.super = function(self,value,previous,native) 
+  __haxe_Exception.super(self,Std.string(value),previous,native);
+  self.value = value;
+end
+__haxe_ValueException.__name__ = true
+__haxe_ValueException.prototype = _hx_e();
+
+__haxe_ValueException.prototype.__class__ =  __haxe_ValueException
+__haxe_ValueException.__super__ = __haxe_Exception
+setmetatable(__haxe_ValueException.prototype,{__index=__haxe_Exception.prototype})
 
 __haxe_ds_IntMap.new = function() 
   local self = _hx_new(__haxe_ds_IntMap.prototype)
@@ -1157,6 +1299,7 @@ end
 __haxe_ds_IntMap.super = function(self) 
   self.h = ({});
 end
+__haxe_ds_IntMap.__name__ = true
 __haxe_ds_IntMap.__interfaces__ = {__haxe_IMap}
 __haxe_ds_IntMap.prototype = _hx_e();
 __haxe_ds_IntMap.prototype.remove = function(self,key) 
@@ -1168,6 +1311,8 @@ __haxe_ds_IntMap.prototype.remove = function(self,key)
   end;
 end
 
+__haxe_ds_IntMap.prototype.__class__ =  __haxe_ds_IntMap
+
 __haxe_iterators_ArrayIterator.new = function(array) 
   local self = _hx_new(__haxe_iterators_ArrayIterator.prototype)
   __haxe_iterators_ArrayIterator.super(self,array)
@@ -1177,6 +1322,7 @@ __haxe_iterators_ArrayIterator.super = function(self,array)
   self.current = 0;
   self.array = array;
 end
+__haxe_iterators_ArrayIterator.__name__ = true
 __haxe_iterators_ArrayIterator.prototype = _hx_e();
 __haxe_iterators_ArrayIterator.prototype.hasNext = function(self) 
   do return self.current < self.array.length end
@@ -1191,14 +1337,136 @@ __haxe_iterators_ArrayIterator.prototype.next = function(self)
    end)()] end
 end
 
+__haxe_iterators_ArrayIterator.prototype.__class__ =  __haxe_iterators_ArrayIterator
+
 __haxe_iterators_ArrayKeyValueIterator.new = function(array) 
-  local self = _hx_new()
+  local self = _hx_new(__haxe_iterators_ArrayKeyValueIterator.prototype)
   __haxe_iterators_ArrayKeyValueIterator.super(self,array)
   return self
 end
 __haxe_iterators_ArrayKeyValueIterator.super = function(self,array) 
   self.array = array;
 end
+__haxe_iterators_ArrayKeyValueIterator.__name__ = true
+__haxe_iterators_ArrayKeyValueIterator.prototype = _hx_e();
+
+__haxe_iterators_ArrayKeyValueIterator.prototype.__class__ =  __haxe_iterators_ArrayKeyValueIterator
+
+__lua_Boot.new = {}
+__lua_Boot.__name__ = true
+__lua_Boot.__instanceof = function(o,cl) 
+  if (cl == nil) then 
+    do return false end;
+  end;
+  local cl1 = cl;
+  if (cl1) == Array then 
+    do return __lua_Boot.isArray(o) end;
+  elseif (cl1) == Bool then 
+    do return _G.type(o) == "boolean" end;
+  elseif (cl1) == Dynamic then 
+    do return o ~= nil end;
+  elseif (cl1) == Float then 
+    do return _G.type(o) == "number" end;
+  elseif (cl1) == Int then 
+    if (_G.type(o) == "number") then 
+      do return _hx_bit_clamp(o) == o end;
+    else
+      do return false end;
+    end;
+  elseif (cl1) == String then 
+    do return _G.type(o) == "string" end;
+  elseif (cl1) == _G.table then 
+    do return _G.type(o) == "table" end;
+  elseif (cl1) == __lua_Thread then 
+    do return _G.type(o) == "thread" end;
+  elseif (cl1) == __lua_UserData then 
+    do return _G.type(o) == "userdata" end;else
+  if (((o ~= nil) and (_G.type(o) == "table")) and (_G.type(cl) == "table")) then 
+    local tmp;
+    if (__lua_Boot.__instanceof(o, Array)) then 
+      tmp = Array;
+    else
+      if (__lua_Boot.__instanceof(o, String)) then 
+        tmp = String;
+      else
+        local cl = o.__class__;
+        tmp = (function() 
+          local _hx_1
+          if (cl ~= nil) then 
+          _hx_1 = cl; else 
+          _hx_1 = nil; end
+          return _hx_1
+        end )();
+      end;
+    end;
+    if (__lua_Boot.extendsOrImplements(tmp, cl)) then 
+      do return true end;
+    end;
+    if ((function() 
+      local _hx_2
+      if (cl == Class) then 
+      _hx_2 = o.__name__ ~= nil; else 
+      _hx_2 = false; end
+      return _hx_2
+    end )()) then 
+      do return true end;
+    end;
+    if ((function() 
+      local _hx_3
+      if (cl == Enum) then 
+      _hx_3 = o.__ename__ ~= nil; else 
+      _hx_3 = false; end
+      return _hx_3
+    end )()) then 
+      do return true end;
+    end;
+    do return o.__enum__ == cl end;
+  else
+    do return false end;
+  end; end;
+end
+__lua_Boot.isArray = function(o) 
+  if (_G.type(o) == "table") then 
+    if ((o.__enum__ == nil) and (_G.getmetatable(o) ~= nil)) then 
+      do return _G.getmetatable(o).__index == Array.prototype end;
+    else
+      do return false end;
+    end;
+  else
+    do return false end;
+  end;
+end
+__lua_Boot.extendsOrImplements = function(cl1,cl2) 
+  while (true) do 
+    if ((cl1 == nil) or (cl2 == nil)) then 
+      do return false end;
+    else
+      if (cl1 == cl2) then 
+        do return true end;
+      else
+        if (cl1.__interfaces__ ~= nil) then 
+          local intf = cl1.__interfaces__;
+          local _g = 1;
+          local _g1 = _hx_table.maxn(intf) + 1;
+          while (_g < _g1) do 
+            _g = _g + 1;
+            local i = _g - 1;
+            if (__lua_Boot.extendsOrImplements(intf[i], cl2)) then 
+              do return true end;
+            end;
+          end;
+        end;
+      end;
+    end;
+    cl1 = cl1.__super__;
+  end;
+end
+
+__lua_UserData.new = {}
+__lua_UserData.__name__ = true
+
+__lua_Thread.new = {}
+__lua_Thread.__name__ = true
 if _hx_bit_raw then
     _hx_bit_clamp = function(v)
     if v <= 2147483647 and v >= -2147483648 then
@@ -1230,12 +1498,26 @@ _hx_array_mt.__index = Array.prototype
 
 local _hx_static_init = function()
   
+  String.__name__ = true;
+  Array.__name__ = true;
   _hxdefold_ = _hxdefold_ or {}
   __defold_support_Init.init(_hxdefold_);MainRes.screen = _G.msg.url("main:/screen");
   
   MainRes.screen_collection_proxy_arena = _G.msg.url("main:/screen#collection_proxy_arena");
   
   ScreenMessages.goto_screen = _G.hash("main_goto_screen");
+  
+  __arena_ArenaAtlasRes.Jelly_1 = _G.hash("Jelly_1");
+  
+  __arena_ArenaAtlasRes.Jelly_2 = _G.hash("Jelly_2");
+  
+  __arena_ArenaAtlasRes.Jelly_3 = _G.hash("Jelly_3");
+  
+  __arena_ArenaAtlasRes.Jelly_4 = _G.hash("Jelly_4");
+  
+  __arena_ArenaAtlasRes.Jelly_5 = _G.hash("Jelly_5");
+  
+  __arena_ArenaAtlasRes.Jelly_6 = _G.hash("Jelly_6");
   
   __arena_ArenaScreenRes.arena = _G.msg.url("arena:/arena");
   
@@ -1244,6 +1526,10 @@ local _hx_static_init = function()
   __arena_BlockViewMessages.setup = _G.hash("block_view_setup");
   
   __arena_BlockViewMessages.move = _G.hash("block_view_move");
+  
+  __arena_BlockViewRes.sprite = "#sprite";
+  
+  __arena_stage_Arena.Colors = _hx_tab_array({[0]=1, 2, 3, 4, 5, 6}, 6);
   
   __defold_CollectionproxyMessages.async_load = _G.hash("async_load");
   
@@ -1279,6 +1565,17 @@ _hx_bind = function(o,m)
   return f;
 end
 
-_hx_print = print or (function() end)
+_hx_table = {}
+_hx_table.pack = _G.table.pack or function(...)
+    return {...}
+end
+_hx_table.unpack = _G.table.unpack or _G.unpack
+_hx_table.maxn = _G.table.maxn or function(t)
+  local maxn=0;
+  for i in pairs(t) do
+    maxn=type(i)=='number'and i>maxn and i or maxn
+  end
+  return maxn
+end;
 
 _hx_static_init();

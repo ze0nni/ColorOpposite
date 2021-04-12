@@ -16,8 +16,8 @@ components {
 embedded_components {
   id: "sprite"
   type: "sprite"
-  data: "tile_set: \"/assets/arena.atlas\"\n"
-  "default_animation: \"Jelly_1\"\n"
+  data: "tile_set: \"/arena/ArenaAtlas.atlas\"\n"
+  "default_animation: \"Jelly_6\"\n"
   "material: \"/builtins/materials/sprite.material\"\n"
   "blend_mode: BLEND_MODE_ALPHA\n"
   ""
