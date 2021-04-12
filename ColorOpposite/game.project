@@ -1,5 +1,6 @@
 [project]
 title = ColorOpposite
+dependencies = https://github.com/defold/extension-websocket/archive/master.zip
 
 [bootstrap]
 main_collection = /main/main.collectionc

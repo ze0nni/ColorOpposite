@@ -215,13 +215,14 @@ __arena_stage_Arena = _hx_e()
 __arena_stage_ArenaConst = _hx_e()
 __arena_stage_Input = _hx_e()
 __arena_stage_ArenaController = _hx_e()
-__arena_stage_Common = _hx_e()
+__arena_stage_ArenaControllerWS = _hx_e()
 __arena_stage_CellsExt = _hx_e()
 __defold_CollectionproxyMessages = _hx_e()
 __defold_GoMessages = _hx_e()
 __defold_support_Init = _hx_e()
 __haxe_IMap = _hx_e()
 __haxe_Exception = _hx_e()
+__haxe_Log = _hx_e()
 __haxe_NativeStackTrace = _hx_e()
 __haxe_ValueException = _hx_e()
 __haxe_ds_IntMap = _hx_e()
@@ -589,7 +590,7 @@ Main.prototype.init = function(self,_self)
   Main.DISPLAY_HEIGHT = Std.parseInt(_G.sys.get_config("display.height"));
   _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
   _G.msg.post("@render:", self.use_fixed_fit_projection, _hx_o({__fields__={near=true,far=true},near=-1,far=1}));
-  __arena_ArenaScreen.Enter(__arena_stage_Common.new());
+  __arena_ArenaScreen.Enter(__arena_stage_ArenaControllerWS.new("ws://echo.websocket.org"));
 end
 Main.prototype.on_message = function(self,_self,message_id,message,sender) 
   if (message_id) == ScreenMessages.goto_screen then 
@@ -1294,28 +1295,35 @@ __arena_stage_ArenaController.prototype = _hx_e();
 
 __arena_stage_ArenaController.prototype.__class__ =  __arena_stage_ArenaController
 
-__arena_stage_Common.new = function() 
-  local self = _hx_new(__arena_stage_Common.prototype)
-  __arena_stage_Common.super(self)
+__arena_stage_ArenaControllerWS.new = function(url) 
+  local self = _hx_new(__arena_stage_ArenaControllerWS.prototype)
+  __arena_stage_ArenaControllerWS.super(self,url)
   return self
 end
-__arena_stage_Common.super = function(self) 
+__arena_stage_ArenaControllerWS.super = function(self,url) 
+  websocket.connect(url, _hx_e(), function(_,conn,data) 
+    if (data.event == 0) then 
+      websocket.send(conn, "Hello");
+    else
+      __haxe_Log.trace(data, _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/arena/stage/ArenaControllerWS.hx",lineNumber=13,className="arena.stage.ArenaControllerWS",methodName="new"}));
+    end;
+  end);
 end
-__arena_stage_Common.__name__ = true
-__arena_stage_Common.__interfaces__ = {__arena_stage_ArenaController}
-__arena_stage_Common.prototype = _hx_e();
-__arena_stage_Common.prototype.myTurn = function(self) 
-  do return true end
+__arena_stage_ArenaControllerWS.__name__ = true
+__arena_stage_ArenaControllerWS.__interfaces__ = {__arena_stage_ArenaController}
+__arena_stage_ArenaControllerWS.prototype = _hx_e();
+__arena_stage_ArenaControllerWS.prototype.myTurn = function(self) 
+  do return false end
 end
-__arena_stage_Common.prototype.touch = function(self,x,y) 
+__arena_stage_ArenaControllerWS.prototype.touch = function(self,x,y) 
 end
-__arena_stage_Common.prototype.readInput = function(self) 
+__arena_stage_ArenaControllerWS.prototype.readInput = function(self) 
   do return __arena_stage_Input.None end
 end
-__arena_stage_Common.prototype.sendHash = function(self,turn,hash) 
+__arena_stage_ArenaControllerWS.prototype.sendHash = function(self,turn,hash) 
 end
 
-__arena_stage_Common.prototype.__class__ =  __arena_stage_Common
+__arena_stage_ArenaControllerWS.prototype.__class__ =  __arena_stage_ArenaControllerWS
 
 __arena_stage_CellsExt.new = {}
 __arena_stage_CellsExt.__name__ = true
@@ -1407,6 +1415,30 @@ __haxe_Exception.prototype.get_native = function(self)
 end
 
 __haxe_Exception.prototype.__class__ =  __haxe_Exception
+
+__haxe_Log.new = {}
+__haxe_Log.__name__ = true
+__haxe_Log.formatOutput = function(v,infos) 
+  local str = Std.string(v);
+  if (infos == nil) then 
+    do return str end;
+  end;
+  local pstr = Std.string(Std.string(infos.fileName) .. Std.string(":")) .. Std.string(infos.lineNumber);
+  if (infos.customParams ~= nil) then 
+    local _g = 0;
+    local _g1 = infos.customParams;
+    while (_g < _g1.length) do 
+      local v = _g1[_g];
+      _g = _g + 1;
+      str = Std.string(str) .. Std.string((Std.string(", ") .. Std.string(Std.string(v))));
+    end;
+  end;
+  do return Std.string(Std.string(pstr) .. Std.string(": ")) .. Std.string(str) end;
+end
+__haxe_Log.trace = function(v,infos) 
+  local str = __haxe_Log.formatOutput(v, infos);
+  _hx_print(str);
+end
 
 __haxe_NativeStackTrace.new = {}
 __haxe_NativeStackTrace.__name__ = true
@@ -1742,6 +1774,8 @@ _hx_bind = function(o,m)
   end
   return f;
 end
+
+_hx_print = print or (function() end)
 
 _hx_table = {}
 _hx_table.pack = _G.table.pack or function(...)
