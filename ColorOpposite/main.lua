@@ -1104,6 +1104,9 @@ __arena_stage_Arena.prototype.unlockCell = function(self,x,y)
   self._cellsLocks = self._cellsLocks - 1;
 end
 __arena_stage_Arena.prototype.touchCell = function(self,x,y) 
+  if (self._cellsLocks > 0) then 
+    do return end;
+  end;
   local size = self._stage.size;
   local cells = self._stage.cells;
   if ((((x < 0) or (y < 0)) or (x >= size)) or (y >= size)) then 
@@ -1112,18 +1115,19 @@ __arena_stage_Arena.prototype.touchCell = function(self,x,y)
   if (self._stage.cells[y][x].block == nil) then 
     do return end;
   end;
-  if (self._cells[y][x].lock ~= 0) then 
-    do return end;
-  end;
   local xStack = _hx_tab_array({[0]=x}, 1);
   local yStack = _hx_tab_array({[0]=y}, 1);
   local score = 0;
-  while (xStack.length > 0) do 
+  local _hx_continue_1 = false;
+  while (xStack.length > 0) do repeat 
     local sx = xStack:pop();
     local sy = yStack:pop();
     local block = _hx_tab_array({[0]=cells[sy][sx].block}, 1);
-    self._listener(__arena_stage_ArenaEvent.BlockDespawned(block[0].id));
+    if (block[0] == nil) then 
+      break;
+    end;
     cells[sy][sx].block = nil;
+    self._listener(__arena_stage_ArenaEvent.BlockDespawned(block[0].id));
     score = score + 1;
     local consumer = (function(block) 
       do return function(bx,by,cell) 
@@ -1158,9 +1162,14 @@ __arena_stage_Arena.prototype.touchCell = function(self,x,y)
       if (cell.block ~= nil) then 
         consumer(sx, sy + 1, cell);
       end;
+    end;until true
+    if _hx_continue_1 then 
+    _hx_continue_1 = false;
+    break;
     end;
+    
   end;
-  __haxe_Log.trace(score, _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/arena/stage/Arena.hx",lineNumber=133,className="arena.stage.Arena",methodName="touchCell"}));
+  __haxe_Log.trace(score, _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/arena/stage/Arena.hx",lineNumber=137,className="arena.stage.Arena",methodName="touchCell"}));
 end
 __arena_stage_Arena.prototype.handleGenerateBlocks = function(self) 
   local size = self._stage.size;

@@ -99,6 +99,9 @@ class Arena {
     }
 
     public function touchCell(x: Int, y: Int) {
+        if (_cellsLocks > 0) {
+            return;
+        }
         var size = _stage.size;
         var cells = _stage.cells;
         if (x < 0 || y < 0 || x >= size || y >= size) {
@@ -107,8 +110,6 @@ class Arena {
         if (_stage.cells[y][x].block == null) {
             return;
         }
-        if (!IsFree(x, y))
-            return;
 
         var xStack = [x];
         var yStack = [y];
@@ -118,8 +119,11 @@ class Arena {
             var sx = xStack.pop();
             var sy = yStack.pop();
             var block = cells[sy][sx].block;
-            _listener.call(BlockDespawned(block.id));
+            if (block == null)
+                continue;
+            
             cells[sy][sx].block = null;
+            _listener.call(BlockDespawned(block.id));
 
             score++;
 
