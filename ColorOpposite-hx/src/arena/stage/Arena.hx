@@ -31,6 +31,7 @@ class Arena {
     var _listener: ArenaListener;
 
     private static var Colors: Array<BlockKind> = [Color1, Color2, Color3, Color4, Color5, Color6];
+    private static var Rockets: Array<BlockKind> = [RocketHor, RocketVert];
 
     public function new(stage: ArenaStage, listener: ArenaListener) {
         _stage = stage;
@@ -121,7 +122,7 @@ class Arena {
             var block = cells[sy][sx].block;
             if (block == null)
                 continue;
-            
+
             cells[sy][sx].block = null;
             _listener.call(BlockDespawned(block.id));
 
@@ -134,7 +135,7 @@ class Arena {
                 }
             });
         }
-        trace(score);
+        handleMatch(x, y, score);
     }
 
     inline function neighbors(x: Int, y: Int, blocks: Bool, consumer: Int -> Int -> Cell -> Void) {
@@ -163,6 +164,12 @@ class Arena {
             if (!blocks || cell.block != null) {
                 consumer(x, y+1, cell);
             }
+        }
+    }
+
+    function handleMatch(x: Int, y: Int, score: Int) {
+        if (score == 5) {
+            spawnBlock(x, y, peekRandom(Rockets), Swap);
         }
     }
 

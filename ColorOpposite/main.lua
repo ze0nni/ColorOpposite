@@ -219,7 +219,6 @@ __defold_GoMessages = _hx_e()
 __defold_support_Init = _hx_e()
 __haxe_IMap = _hx_e()
 __haxe_Exception = _hx_e()
-__haxe_Log = _hx_e()
 __haxe_NativeStackTrace = _hx_e()
 __haxe_ValueException = _hx_e()
 __haxe_ds_IntMap = _hx_e()
@@ -903,6 +902,9 @@ __arena_ArenaScreen.prototype.update = function(self,_self,dt)
 end
 __arena_ArenaScreen.prototype.on_input = function(self,_self,action_id,action) 
   if (action_id == InputRes.touch) then 
+    if (not action.pressed) then 
+      do return true end;
+    end;
     local arenaPos = _G.go.get_position(__arena_ArenaScreenRes.arena);
     local mousePos = Main.screen_to_viewport(action.screen_x, action.screen_y);
     local arenaX = Std.int((mousePos.x - arenaPos.x) / 92);
@@ -1009,9 +1011,7 @@ __arena_BlockView.prototype.move_done = function(self,_self,_,_1)
 end
 __arena_BlockView.prototype.setSprite = function(self,_self,kind) 
   local image;
-  if (kind) == 0 then 
-    do return end;
-  elseif (kind) == 1 then 
+  if (kind) == 1 then 
     image = __arena_ArenaAtlasRes.Jelly_1;
   elseif (kind) == 2 then 
     image = __arena_ArenaAtlasRes.Jelly_2;
@@ -1022,7 +1022,12 @@ __arena_BlockView.prototype.setSprite = function(self,_self,kind)
   elseif (kind) == 5 then 
     image = __arena_ArenaAtlasRes.Jelly_5;
   elseif (kind) == 6 then 
-    image = __arena_ArenaAtlasRes.Jelly_6; end;
+    image = __arena_ArenaAtlasRes.Jelly_6;
+  elseif (kind) == 7 then 
+    image = __arena_ArenaAtlasRes.Rocket_Vert;
+  elseif (kind) == 8 then 
+    image = __arena_ArenaAtlasRes.Rocket_Hor;else
+  do return end; end;
   _G.sprite.play_flipbook(__arena_BlockViewRes.sprite, image);
 end
 
@@ -1169,7 +1174,12 @@ __arena_stage_Arena.prototype.touchCell = function(self,x,y)
     end;
     
   end;
-  __haxe_Log.trace(score, _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/arena/stage/Arena.hx",lineNumber=137,className="arena.stage.Arena",methodName="touchCell"}));
+  self:handleMatch(x, y, score);
+end
+__arena_stage_Arena.prototype.handleMatch = function(self,x,y,score) 
+  if (score == 5) then 
+    self:spawnBlock(x, y, self:peekRandom(__arena_stage_Arena.Rockets), 1);
+  end;
 end
 __arena_stage_Arena.prototype.handleGenerateBlocks = function(self) 
   local size = self._stage.size;
@@ -1331,30 +1341,6 @@ __haxe_Exception.prototype.get_native = function(self)
 end
 
 __haxe_Exception.prototype.__class__ =  __haxe_Exception
-
-__haxe_Log.new = {}
-__haxe_Log.__name__ = true
-__haxe_Log.formatOutput = function(v,infos) 
-  local str = Std.string(v);
-  if (infos == nil) then 
-    do return str end;
-  end;
-  local pstr = Std.string(Std.string(infos.fileName) .. Std.string(":")) .. Std.string(infos.lineNumber);
-  if (infos.customParams ~= nil) then 
-    local _g = 0;
-    local _g1 = infos.customParams;
-    while (_g < _g1.length) do 
-      local v = _g1[_g];
-      _g = _g + 1;
-      str = Std.string(str) .. Std.string((Std.string(", ") .. Std.string(Std.string(v))));
-    end;
-  end;
-  do return Std.string(Std.string(pstr) .. Std.string(": ")) .. Std.string(str) end;
-end
-__haxe_Log.trace = function(v,infos) 
-  local str = __haxe_Log.formatOutput(v, infos);
-  _hx_print(str);
-end
 
 __haxe_NativeStackTrace.new = {}
 __haxe_NativeStackTrace.__name__ = true
@@ -1639,6 +1625,10 @@ local _hx_static_init = function()
   
   __arena_ArenaAtlasRes.Jelly_6 = _G.hash("Jelly_6");
   
+  __arena_ArenaAtlasRes.Rocket_Hor = _G.hash("Rocket_Hor");
+  
+  __arena_ArenaAtlasRes.Rocket_Vert = _G.hash("Rocket_Vert");
+  
   __arena_ArenaScreenRes.arena = _G.msg.url("arena:/arena");
   
   __arena_ArenaScreenRes.arena_block_factory = _G.msg.url("arena:/arena#block_factory");
@@ -1650,6 +1640,8 @@ local _hx_static_init = function()
   __arena_BlockViewRes.sprite = "#sprite";
   
   __arena_stage_Arena.Colors = _hx_tab_array({[0]=1, 2, 3, 4, 5, 6}, 6);
+  
+  __arena_stage_Arena.Rockets = _hx_tab_array({[0]=8, 7}, 2);
   
   __defold_CollectionproxyMessages.async_load = _G.hash("async_load");
   
@@ -1684,8 +1676,6 @@ _hx_bind = function(o,m)
   end
   return f;
 end
-
-_hx_print = print or (function() end)
 
 _hx_table = {}
 _hx_table.pack = _G.table.pack or function(...)

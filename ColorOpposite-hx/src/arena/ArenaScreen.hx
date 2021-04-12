@@ -43,6 +43,8 @@ class ArenaScreen extends Script<ArenaScreenData> {
     override function on_input(self:ArenaScreenData, action_id:Hash, action:ScriptOnInputAction):Bool {
         switch (action_id) {
             case InputRes.touch:
+                if (!action.pressed)
+                    return true;
                 var arenaPos = Go.get_position(ArenaScreenRes.arena);
                 var mousePos = Main.screen_to_viewport(action.screen_x, action.screen_y);
                 var arenaX = Std.int((mousePos.x - arenaPos.x) / ArenaConst.TileSize);

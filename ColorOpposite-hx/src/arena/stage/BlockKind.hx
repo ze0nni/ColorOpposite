@@ -8,4 +8,7 @@ package arena.stage;
     var Color4: BlockKind = 4;
     var Color5: BlockKind = 5;
     var Color6: BlockKind = 6;
+
+    var RocketVert: BlockKind = 7;
+    var RocketHor: BlockKind = 8;
 }

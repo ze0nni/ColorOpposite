@@ -76,14 +76,16 @@ class BlockView extends Script<BlockViewData> {
     function setSprite(self:BlockViewData, kind: BlockKind) {
         var image;
         switch (kind) {
-            case None:
-                return;
             case Color1: image = ArenaAtlasRes.Jelly_1;
             case Color2: image = ArenaAtlasRes.Jelly_2;
             case Color3: image = ArenaAtlasRes.Jelly_3;
             case Color4: image = ArenaAtlasRes.Jelly_4;
             case Color5: image = ArenaAtlasRes.Jelly_5;
             case Color6: image = ArenaAtlasRes.Jelly_6;
+            case RocketHor: image = ArenaAtlasRes.Rocket_Hor;
+            case RocketVert: image = ArenaAtlasRes.Rocket_Vert;
+            default:
+                return;
         }
         Sprite.play_flipbook(BlockViewRes.sprite, image);
     }
