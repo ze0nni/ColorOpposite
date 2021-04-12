@@ -196,6 +196,7 @@ local Class = _hx_e();
 local Enum = _hx_e();
 
 local Array = _hx_e()
+local InputRes = _hx_e()
 __defold_support_Script = _hx_e()
 local Main = _hx_e()
 local MainRes = _hx_e()
@@ -218,6 +219,7 @@ __defold_GoMessages = _hx_e()
 __defold_support_Init = _hx_e()
 __haxe_IMap = _hx_e()
 __haxe_Exception = _hx_e()
+__haxe_Log = _hx_e()
 __haxe_NativeStackTrace = _hx_e()
 __haxe_ValueException = _hx_e()
 __haxe_ds_IntMap = _hx_e()
@@ -544,6 +546,9 @@ end
 
 Array.prototype.__class__ =  Array
 
+InputRes.new = {}
+InputRes.__name__ = true
+
 __defold_support_Script.new = function() 
   local self = _hx_new(__defold_support_Script.prototype)
   __defold_support_Script.super(self)
@@ -566,6 +571,13 @@ Main.super = function(self)
   __defold_support_Script.super(self);
 end
 Main.__name__ = true
+Main.screen_to_viewport = function(x,y) 
+  local _hx_1_wsize_width, _hx_1_wsize_height = _G.window.get_size();
+  local scale = _G.math.min(_hx_1_wsize_width / Main.DISPLAY_WIDTH, _hx_1_wsize_height / Main.DISPLAY_HEIGHT);
+  x = (x / scale) - (((_hx_1_wsize_width / scale) - Main.DISPLAY_WIDTH) / 2);
+  y = (y / scale) - (((_hx_1_wsize_height / scale) - Main.DISPLAY_HEIGHT) / 2);
+  do return _hx_o({__fields__={x=true,y=true},x=x,y=y}) end;
+end
 Main.gotoScreen = function(factory) 
   _G.msg.post(MainRes.screen, ScreenMessages.goto_screen, _hx_o({__fields__={screen=true},screen=factory}));
 end
@@ -876,6 +888,7 @@ end
 __arena_ArenaScreen.prototype = _hx_e();
 __arena_ArenaScreen.prototype.init = function(self,_self) 
   local _gthis = self;
+  _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
   _self.blocks = __haxe_ds_IntMap.new();
   _self.arena = __arena_stage_Arena.Empty(function(event) 
     _gthis:onArenaEvent(_self, event);
@@ -887,6 +900,16 @@ __arena_ArenaScreen.prototype.final_ = function(self,_self)
 end
 __arena_ArenaScreen.prototype.update = function(self,_self,dt) 
   _self.arena:update(dt);
+end
+__arena_ArenaScreen.prototype.on_input = function(self,_self,action_id,action) 
+  if (action_id == InputRes.touch) then 
+    local arenaPos = _G.go.get_position(__arena_ArenaScreenRes.arena);
+    local mousePos = Main.screen_to_viewport(action.screen_x, action.screen_y);
+    local arenaX = Std.int((mousePos.x - arenaPos.x) / 92);
+    local arenaY = Std.int((mousePos.y - arenaPos.y) / 92);
+    _self.arena:touchCell(arenaX, arenaY);
+  end;
+  do return true end
 end
 __arena_ArenaScreen.prototype.onArenaEvent = function(self,_self,event) 
   local tmp = event[1];
@@ -1080,6 +1103,65 @@ __arena_stage_Arena.prototype.unlockCell = function(self,x,y)
   fh.lock = fh.lock - 1;
   self._cellsLocks = self._cellsLocks - 1;
 end
+__arena_stage_Arena.prototype.touchCell = function(self,x,y) 
+  local size = self._stage.size;
+  local cells = self._stage.cells;
+  if ((((x < 0) or (y < 0)) or (x >= size)) or (y >= size)) then 
+    do return end;
+  end;
+  if (self._stage.cells[y][x].block == nil) then 
+    do return end;
+  end;
+  if (self._cells[y][x].lock ~= 0) then 
+    do return end;
+  end;
+  local xStack = _hx_tab_array({[0]=x}, 1);
+  local yStack = _hx_tab_array({[0]=y}, 1);
+  local score = 0;
+  while (xStack.length > 0) do 
+    local sx = xStack:pop();
+    local sy = yStack:pop();
+    local block = _hx_tab_array({[0]=cells[sy][sx].block}, 1);
+    self._listener(__arena_stage_ArenaEvent.BlockDespawned(block[0].id));
+    cells[sy][sx].block = nil;
+    score = score + 1;
+    local consumer = (function(block) 
+      do return function(bx,by,cell) 
+        if (cell.block.kind == block[0].kind) then 
+          xStack:push(bx);
+          yStack:push(by);
+        end;
+      end end;
+    end)(block);
+    local cells = self._stage.cells;
+    local last = self._stage.size - 1;
+    if (sx > 0) then 
+      local cell = cells[sy][sx - 1];
+      if (cell.block ~= nil) then 
+        consumer(sx - 1, sy, cell);
+      end;
+    end;
+    if (sy > 0) then 
+      local cell = cells[sy - 1][sx];
+      if (cell.block ~= nil) then 
+        consumer(sx, sy - 1, cell);
+      end;
+    end;
+    if (sx < last) then 
+      local cell = cells[sy][sx + 1];
+      if (cell.block ~= nil) then 
+        consumer(sx + 1, sy, cell);
+      end;
+    end;
+    if (sy < last) then 
+      local cell = cells[sy + 1][sx];
+      if (cell.block ~= nil) then 
+        consumer(sx, sy + 1, cell);
+      end;
+    end;
+  end;
+  __haxe_Log.trace(score, _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/arena/stage/Arena.hx",lineNumber=133,className="arena.stage.Arena",methodName="touchCell"}));
+end
 __arena_stage_Arena.prototype.handleGenerateBlocks = function(self) 
   local size = self._stage.size;
   local top = size - 1;
@@ -1198,6 +1280,9 @@ __defold_support_Init.init = function(exports)
   exports.arena_ArenaScreen_update = function(_self,dt) 
     script:update(_self, dt);
   end;
+  exports.arena_ArenaScreen_on_input = function(_self,action_id,action) 
+    do return script:on_input(_self, action_id, action) end;
+  end;
 end
 
 __haxe_IMap.new = {}
@@ -1237,6 +1322,30 @@ __haxe_Exception.prototype.get_native = function(self)
 end
 
 __haxe_Exception.prototype.__class__ =  __haxe_Exception
+
+__haxe_Log.new = {}
+__haxe_Log.__name__ = true
+__haxe_Log.formatOutput = function(v,infos) 
+  local str = Std.string(v);
+  if (infos == nil) then 
+    do return str end;
+  end;
+  local pstr = Std.string(Std.string(infos.fileName) .. Std.string(":")) .. Std.string(infos.lineNumber);
+  if (infos.customParams ~= nil) then 
+    local _g = 0;
+    local _g1 = infos.customParams;
+    while (_g < _g1.length) do 
+      local v = _g1[_g];
+      _g = _g + 1;
+      str = Std.string(str) .. Std.string((Std.string(", ") .. Std.string(Std.string(v))));
+    end;
+  end;
+  do return Std.string(Std.string(pstr) .. Std.string(": ")) .. Std.string(str) end;
+end
+__haxe_Log.trace = function(v,infos) 
+  local str = __haxe_Log.formatOutput(v, infos);
+  _hx_print(str);
+end
 
 __haxe_NativeStackTrace.new = {}
 __haxe_NativeStackTrace.__name__ = true
@@ -1501,7 +1610,9 @@ local _hx_static_init = function()
   String.__name__ = true;
   Array.__name__ = true;
   _hxdefold_ = _hxdefold_ or {}
-  __defold_support_Init.init(_hxdefold_);MainRes.screen = _G.msg.url("main:/screen");
+  __defold_support_Init.init(_hxdefold_);InputRes.touch = _G.hash("touch");
+  
+  MainRes.screen = _G.msg.url("main:/screen");
   
   MainRes.screen_collection_proxy_arena = _G.msg.url("main:/screen#collection_proxy_arena");
   
@@ -1564,6 +1675,8 @@ _hx_bind = function(o,m)
   end
   return f;
 end
+
+_hx_print = print or (function() end)
 
 _hx_table = {}
 _hx_table.pack = _G.table.pack or function(...)

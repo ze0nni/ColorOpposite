@@ -98,6 +98,70 @@ class Arena {
         return _cells[y][x].lock == 0;
     }
 
+    public function touchCell(x: Int, y: Int) {
+        var size = _stage.size;
+        var cells = _stage.cells;
+        if (x < 0 || y < 0 || x >= size || y >= size) {
+            return;
+        }
+        if (_stage.cells[y][x].block == null) {
+            return;
+        }
+        if (!IsFree(x, y))
+            return;
+
+        var xStack = [x];
+        var yStack = [y];
+
+        var score = 0;
+        while (xStack.length > 0) {
+            var sx = xStack.pop();
+            var sy = yStack.pop();
+            var block = cells[sy][sx].block;
+            _listener.call(BlockDespawned(block.id));
+            cells[sy][sx].block = null;
+
+            score++;
+
+            neighbors(sx, sy, true, function name(bx, by, cell) {
+                if (cell.block.kind == block.kind) {
+                    xStack.push(bx);
+                    yStack.push(by);
+                }
+            });
+        }
+        trace(score);
+    }
+
+    inline function neighbors(x: Int, y: Int, blocks: Bool, consumer: Int -> Int -> Cell -> Void) {
+        var cells = _stage.cells;
+        var last = _stage.size - 1;
+        if (x > 0) {
+            var cell = cells[y][x-1];
+            if (!blocks || cell.block != null) {
+                consumer(x-1, y, cell);
+            }
+        }
+        if (y > 0) {
+            var cell = cells[y-1][x];
+            if (!blocks || cell.block != null) {
+                consumer(x, y-1, cell);
+            }
+        }
+        if (x < last) {
+            var cell = cells[y][x+1];
+            if (!blocks || cell.block != null) {
+                consumer(x+1, y, cell);
+            }
+        }
+        if (y < last) {
+            var cell = cells[y+1][x];
+            if (!blocks || cell.block != null) {
+                consumer(x, y+1, cell);
+            }
+        }
+    }
+
     function handleGenerateBlocks() {
         var size = _stage.size;
         var top = size - 1;

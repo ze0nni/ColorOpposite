@@ -4,5 +4,5 @@ import defold.Msg;
 
 @:publicFields
 class BlockViewRes {
-    static var sprite = "#sprite";
+    static var sprite(default,never) = "#sprite";
 }

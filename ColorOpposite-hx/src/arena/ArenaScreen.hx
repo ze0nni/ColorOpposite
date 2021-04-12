@@ -1,5 +1,7 @@
 package arena;
 
+import lua.lib.luasocket.socket.SelectResult;
+import defold.Go.GoMessages;
 import arena.BlockView.BlockViewMessages;
 import arena.stage.Block;
 import arena.stage.ArenaEvent;
@@ -19,6 +21,8 @@ class ArenaScreen extends Script<ArenaScreenData> {
     public static var ArenaInst(default, null): Arena;
 
     override function init(self:ArenaScreenData) {
+        Msg.post(".", GoMessages.acquire_input_focus);
+
         self.blocks = new Map();
 
         self.arena = Arena.Empty(function(event: ArenaEvent) {
@@ -34,6 +38,20 @@ class ArenaScreen extends Script<ArenaScreenData> {
 
     override function update(self:ArenaScreenData, dt:Float) {
         self.arena.update(dt);
+    }
+
+    override function on_input(self:ArenaScreenData, action_id:Hash, action:ScriptOnInputAction):Bool {
+        switch (action_id) {
+            case InputRes.touch:
+                var arenaPos = Go.get_position(ArenaScreenRes.arena);
+                var mousePos = Main.screen_to_viewport(action.screen_x, action.screen_y);
+                var arenaX = Std.int((mousePos.x - arenaPos.x) / ArenaConst.TileSize);
+                var arenaY = Std.int((mousePos.y - arenaPos.y) / ArenaConst.TileSize);
+                
+                self.arena.touchCell(arenaX, arenaY);
+        }
+
+        return true;
     }
 
     function onArenaEvent(self: ArenaScreenData, event: ArenaEvent) {
