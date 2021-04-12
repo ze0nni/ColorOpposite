@@ -14,7 +14,11 @@ typedef ArenaScreenData = {
 }
 
 class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<ArenaScreenData> {
-    public static function Enter() {
+
+    static var Controller: ArenaController;
+
+    public static function Enter(controller: ArenaController) {
+        Controller = controller;
         Main.gotoScreen(MainRes.screen_collection_proxy_arena);
     }
 
@@ -25,13 +29,14 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
 
         self.blocks = new Map();
 
-        self.arena = Arena.Empty(self, this);
+        self.arena = Arena.Empty(self, this, Controller);
 
         ArenaInst = self.arena;
     }
 
     override function final_(self:ArenaScreenData) {
         ArenaInst = null;
+        Controller = null;
     }
 
     override function update(self:ArenaScreenData, dt:Float) {

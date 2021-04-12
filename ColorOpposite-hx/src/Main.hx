@@ -1,3 +1,4 @@
+import arena.stage.ArenaController.Common;
 import arena.ArenaScreen;
 import Screen.XY;
 import defold.Collectionproxy.CollectionproxyMessages;
@@ -46,7 +47,7 @@ class Main extends defold.support.Script<MainData> {
 		Msg.post(".", GoMessages.acquire_input_focus);
 		Msg.post("@render:", use_fixed_fit_projection, { near : -1, far : 1 });
 
-		ArenaScreen.Enter();
+		ArenaScreen.Enter(new Common());
 	}
 
 	override function on_message<TMessage>(self:MainData, message_id:Message<TMessage>, message:TMessage, sender:Url) {

@@ -213,6 +213,9 @@ __arena_BlockView = _hx_e()
 __arena_BlockViewRes = _hx_e()
 __arena_stage_Arena = _hx_e()
 __arena_stage_ArenaConst = _hx_e()
+__arena_stage_Input = _hx_e()
+__arena_stage_ArenaController = _hx_e()
+__arena_stage_Common = _hx_e()
 __arena_stage_CellsExt = _hx_e()
 __defold_CollectionproxyMessages = _hx_e()
 __defold_GoMessages = _hx_e()
@@ -586,7 +589,7 @@ Main.prototype.init = function(self,_self)
   Main.DISPLAY_HEIGHT = Std.parseInt(_G.sys.get_config("display.height"));
   _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
   _G.msg.post("@render:", self.use_fixed_fit_projection, _hx_o({__fields__={near=true,far=true},near=-1,far=1}));
-  __arena_ArenaScreen.Enter();
+  __arena_ArenaScreen.Enter(__arena_stage_Common.new());
 end
 Main.prototype.on_message = function(self,_self,message_id,message,sender) 
   if (message_id) == ScreenMessages.goto_screen then 
@@ -888,18 +891,20 @@ __arena_ArenaScreen.super = function(self)
 end
 __arena_ArenaScreen.__name__ = true
 __arena_ArenaScreen.__interfaces__ = {__arena_stage_ArenaListener}
-__arena_ArenaScreen.Enter = function() 
+__arena_ArenaScreen.Enter = function(controller) 
+  __arena_ArenaScreen.Controller = controller;
   Main.gotoScreen(MainRes.screen_collection_proxy_arena);
 end
 __arena_ArenaScreen.prototype = _hx_e();
 __arena_ArenaScreen.prototype.init = function(self,_self) 
   _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
   _self.blocks = __haxe_ds_IntMap.new();
-  _self.arena = __arena_stage_Arena.Empty(_self, self);
+  _self.arena = __arena_stage_Arena.Empty(_self, self, __arena_ArenaScreen.Controller);
   __arena_ArenaScreen.ArenaInst = _self.arena;
 end
 __arena_ArenaScreen.prototype.final_ = function(self,_self) 
   __arena_ArenaScreen.ArenaInst = nil;
+  __arena_ArenaScreen.Controller = nil;
 end
 __arena_ArenaScreen.prototype.update = function(self,_self,dt) 
   _self.arena:update(dt);
@@ -1042,16 +1047,20 @@ setmetatable(__arena_BlockView.prototype,{__index=__defold_support_Script.protot
 __arena_BlockViewRes.new = {}
 __arena_BlockViewRes.__name__ = true
 
-__arena_stage_Arena.new = function(stage,_self,listener) 
+__arena_stage_Arena.new = function(stage,_self,listener,controller) 
   local self = _hx_new(__arena_stage_Arena.prototype)
-  __arena_stage_Arena.super(self,stage,_self,listener)
+  __arena_stage_Arena.super(self,stage,_self,listener,controller)
   return self
 end
-__arena_stage_Arena.super = function(self,stage,_self,listener) 
+__arena_stage_Arena.super = function(self,stage,_self,listener,controller) 
+  self._requestForUpdateState = true;
+  self._state = 0;
+  self._lockForUpdate = false;
   self._cellsLocks = 0;
   self._stage = stage;
   self._self = _self;
   self._listener = listener;
+  self._controller = controller;
   local size = self._stage.size;
   self._cells = Array.new();
   local _g = 0;
@@ -1068,8 +1077,8 @@ __arena_stage_Arena.super = function(self,stage,_self,listener)
   self._listener:onResize(self._self, self._stage.size);
 end
 __arena_stage_Arena.__name__ = true
-__arena_stage_Arena.Empty = function(_self,listener) 
-  do return __arena_stage_Arena.new(_hx_o({__fields__={identity=true,size=true,cells=true},identity=0,size=8,cells=__arena_stage_CellsExt.Empty(8)}), _self, listener) end;
+__arena_stage_Arena.Empty = function(_self,listener,controller) 
+  do return __arena_stage_Arena.new(_hx_o({__fields__={identity=true,size=true,cells=true},identity=0,size=8,cells=__arena_stage_CellsExt.Empty(8)}), _self, listener, controller) end;
 end
 __arena_stage_Arena.prototype = _hx_e();
 __arena_stage_Arena.prototype.getId = function(self) 
@@ -1093,6 +1102,19 @@ end
 __arena_stage_Arena.prototype.update = function(self,dt) 
   self:handleGenerateBlocks();
   self:handleEmptyCells();
+  if ((not self._lockForUpdate and not self._controller:myTurn()) and (self._cellsLocks == 0)) then 
+    local _g = self._controller:readInput();
+    local tmp = _g[1];
+    if (tmp) == 0 then 
+    elseif (tmp) == 1 then 
+      self:touchCellInternal(_g[2], _g[3]); end;
+  end;
+  if ((self._requestForUpdateState and not self._lockForUpdate) and (self._cellsLocks == 0)) then 
+    self._requestForUpdateState = false;
+    self._state = self._state + 1;
+    self._controller:sendHash(self._state, self._state);
+  end;
+  self._lockForUpdate = false;
 end
 __arena_stage_Arena.prototype.spawnBlock = function(self,x,y,kind,reason) 
   if (self._stage.cells[y][x].block ~= nil) then 
@@ -1114,6 +1136,13 @@ __arena_stage_Arena.prototype.unlockCell = function(self,x,y)
   self._cellsLocks = self._cellsLocks - 1;
 end
 __arena_stage_Arena.prototype.touchCell = function(self,x,y) 
+  if (not self._controller:myTurn()) then 
+    do return end;
+  end;
+  self._controller:touch(x, y);
+  self:touchCellInternal(x, y);
+end
+__arena_stage_Arena.prototype.touchCellInternal = function(self,x,y) 
   if (self._cellsLocks > 0) then 
     do return end;
   end;
@@ -1125,6 +1154,8 @@ __arena_stage_Arena.prototype.touchCell = function(self,x,y)
   if (self._stage.cells[y][x].block == nil) then 
     do return end;
   end;
+  self._requestForUpdateState = true;
+  self._lockForUpdate = true;
   local xStack = _hx_tab_array({[0]=x}, 1);
   local yStack = _hx_tab_array({[0]=y}, 1);
   local score = 0;
@@ -1201,6 +1232,7 @@ __arena_stage_Arena.prototype.handleGenerateBlocks = function(self)
     if (self._stage.cells[top][x].block ~= nil) then 
       break;
     end;
+    self._lockForUpdate = true;
     self:spawnBlock(x, top, self:peekRandom(__arena_stage_Arena.Colors), 0);until true
     if _hx_continue_1 then 
     _hx_continue_1 = false;
@@ -1227,6 +1259,7 @@ __arena_stage_Arena.prototype.handleEmptyCells = function(self)
       if ((cells[y][x].block == nil) or (cells[y - 1][x].block ~= nil)) then 
         break;
       end;
+      self._lockForUpdate = true;
       local block = cells[y][x].block;
       block.x = x;
       block.y = y - 1;
@@ -1249,6 +1282,40 @@ __arena_stage_ArenaConst.__name__ = true
 __arena_stage_ArenaConst.tileCenter = function(x,y) 
   do return _G.vmath.vector3((x * 92) + 46., (y * 92) + 46., 0) end;
 end
+_hxClasses["arena.stage.Input"] = { __ename__ = true, __constructs__ = _hx_tab_array({[0]="None","Touch"},2)}
+__arena_stage_Input = _hxClasses["arena.stage.Input"];
+__arena_stage_Input.None = _hx_tab_array({[0]="None",0,__enum__ = __arena_stage_Input},2)
+
+__arena_stage_Input.Touch = function(x,y) local _x = _hx_tab_array({[0]="Touch",1,x,y,__enum__=__arena_stage_Input}, 4); return _x; end 
+
+__arena_stage_ArenaController.new = {}
+__arena_stage_ArenaController.__name__ = true
+__arena_stage_ArenaController.prototype = _hx_e();
+
+__arena_stage_ArenaController.prototype.__class__ =  __arena_stage_ArenaController
+
+__arena_stage_Common.new = function() 
+  local self = _hx_new(__arena_stage_Common.prototype)
+  __arena_stage_Common.super(self)
+  return self
+end
+__arena_stage_Common.super = function(self) 
+end
+__arena_stage_Common.__name__ = true
+__arena_stage_Common.__interfaces__ = {__arena_stage_ArenaController}
+__arena_stage_Common.prototype = _hx_e();
+__arena_stage_Common.prototype.myTurn = function(self) 
+  do return true end
+end
+__arena_stage_Common.prototype.touch = function(self,x,y) 
+end
+__arena_stage_Common.prototype.readInput = function(self) 
+  do return __arena_stage_Input.None end
+end
+__arena_stage_Common.prototype.sendHash = function(self,turn,hash) 
+end
+
+__arena_stage_Common.prototype.__class__ =  __arena_stage_Common
 
 __arena_stage_CellsExt.new = {}
 __arena_stage_CellsExt.__name__ = true

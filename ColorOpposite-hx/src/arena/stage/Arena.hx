@@ -6,7 +6,7 @@ typedef CellContext = {
 
 class Arena<TSelf> {
 
-    static public function Empty<TSelf>(self: TSelf, listener: ArenaListener<TSelf>): Arena<TSelf> {
+    static public function Empty<TSelf>(self: TSelf, listener: ArenaListener<TSelf>, controller: ArenaController): Arena<TSelf> {
         return new Arena<TSelf>(
             {
                 identity: 0,
@@ -14,25 +14,32 @@ class Arena<TSelf> {
                 cells: arena.stage.Cells.CellsExt.Empty(8)
             },
             self,
-            listener
+            listener,
+            controller
         );
     }
 
     var _stage: ArenaStage;
     
     var _cellsLocks: Int = 0;
+    var _lockForUpdate: Bool = false;
     var _cells: Array<Array<CellContext>>;
+    
+    var _state: Int = 0;
+    var _requestForUpdateState: Bool = true;
 
     var _self: TSelf;
     var _listener: ArenaListener<TSelf>;
+    var _controller: ArenaController;
 
     private static var Colors: Array<BlockKind> = [Color1, Color2, Color3, Color4, Color5, Color6];
     private static var Rockets: Array<BlockKind> = [RocketHor, RocketVert];
 
-    public function new(stage: ArenaStage, self: TSelf, listener: ArenaListener<TSelf>) {
+    public function new(stage: ArenaStage, self: TSelf, listener: ArenaListener<TSelf>, controller: ArenaController) {
         _stage = stage;
         _self = self;
         _listener = listener;
+        _controller = controller;
 
         var size = _stage.size;
         _cells = new Array();
@@ -67,6 +74,22 @@ class Arena<TSelf> {
     public function update(dt: Float) {
         handleGenerateBlocks();
         handleEmptyCells();
+
+        if (!_lockForUpdate && !_controller.myTurn() && _cellsLocks == 0) {
+            switch (_controller.readInput()) {
+                case None:
+                case Touch(x, y):
+                    touchCellInternal(x, y);
+            }
+        }
+
+        if (_requestForUpdateState && !_lockForUpdate && _cellsLocks == 0) {
+            _requestForUpdateState = false;
+            _state++;
+            _controller.sendHash(_state, _state);
+        }
+
+        _lockForUpdate = false;
     }
 
     function spawnBlock(x: Int, y: Int, kind: BlockKind, reason: BlockSpawnReason) {
@@ -97,6 +120,13 @@ class Arena<TSelf> {
     }
 
     public function touchCell(x: Int, y: Int) {
+        if (!_controller.myTurn())
+            return;
+        _controller.touch(x, y);
+        touchCellInternal(x, y);
+    }
+
+    function touchCellInternal(x: Int, y: Int) {
         if (_cellsLocks > 0) {
             return;
         }
@@ -108,6 +138,9 @@ class Arena<TSelf> {
         if (_stage.cells[y][x].block == null) {
             return;
         }
+
+        _requestForUpdateState = true;
+        _lockForUpdate = true;
 
         var xStack = [x];
         var yStack = [y];
@@ -181,6 +214,8 @@ class Arena<TSelf> {
             if (_stage.cells[top][x].block != null) {
                 continue;
             }
+            _lockForUpdate = true;
+
             var color = peekRandom(Colors);
             spawnBlock(x, top, color, Generate);
         }
@@ -197,6 +232,8 @@ class Arena<TSelf> {
                 if (cells[y][x].block == null || cells[y-1][x].block != null) {
                     continue;
                 }
+                _lockForUpdate = true;
+
                 var block = cells[y][x].block;
                 block.x = x;
                 block.y = y-1;
