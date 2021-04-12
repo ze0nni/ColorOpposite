@@ -205,6 +205,7 @@ local ScreenMessages = _hx_e()
 local String = _hx_e()
 local Std = _hx_e()
 __arena_ArenaAtlasRes = _hx_e()
+__arena_stage_ArenaListener = _hx_e()
 __arena_ArenaScreen = _hx_e()
 __arena_ArenaScreenRes = _hx_e()
 __arena_BlockViewMessages = _hx_e()
@@ -212,7 +213,6 @@ __arena_BlockView = _hx_e()
 __arena_BlockViewRes = _hx_e()
 __arena_stage_Arena = _hx_e()
 __arena_stage_ArenaConst = _hx_e()
-__arena_stage_ArenaEvent = _hx_e()
 __arena_stage_CellsExt = _hx_e()
 __defold_CollectionproxyMessages = _hx_e()
 __defold_GoMessages = _hx_e()
@@ -872,6 +872,12 @@ end
 __arena_ArenaAtlasRes.new = {}
 __arena_ArenaAtlasRes.__name__ = true
 
+__arena_stage_ArenaListener.new = {}
+__arena_stage_ArenaListener.__name__ = true
+__arena_stage_ArenaListener.prototype = _hx_e();
+
+__arena_stage_ArenaListener.prototype.__class__ =  __arena_stage_ArenaListener
+
 __arena_ArenaScreen.new = function() 
   local self = _hx_new(__arena_ArenaScreen.prototype)
   __arena_ArenaScreen.super(self)
@@ -881,17 +887,15 @@ __arena_ArenaScreen.super = function(self)
   __defold_support_Script.super(self);
 end
 __arena_ArenaScreen.__name__ = true
+__arena_ArenaScreen.__interfaces__ = {__arena_stage_ArenaListener}
 __arena_ArenaScreen.Enter = function() 
   Main.gotoScreen(MainRes.screen_collection_proxy_arena);
 end
 __arena_ArenaScreen.prototype = _hx_e();
 __arena_ArenaScreen.prototype.init = function(self,_self) 
-  local _gthis = self;
   _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
   _self.blocks = __haxe_ds_IntMap.new();
-  _self.arena = __arena_stage_Arena.Empty(function(event) 
-    _gthis:onArenaEvent(_self, event);
-  end);
+  _self.arena = __arena_stage_Arena.Empty(_self, self);
   __arena_ArenaScreen.ArenaInst = _self.arena;
 end
 __arena_ArenaScreen.prototype.final_ = function(self,_self) 
@@ -913,42 +917,42 @@ __arena_ArenaScreen.prototype.on_input = function(self,_self,action_id,action)
   end;
   do return true end
 end
-__arena_ArenaScreen.prototype.onArenaEvent = function(self,_self,event) 
-  local tmp = event[1];
-  if (tmp) == 0 then 
-  elseif (tmp) == 1 then 
-    local _g = event[2];
-    local blockId = _G.factory.create(__arena_ArenaScreenRes.arena_block_factory);
-    local _this = _self.blocks;
-    local key = _g.id;
-    if (blockId == nil) then 
-      _this.h[key] = __haxe_ds_IntMap.tnull;
-    else
-      _this.h[key] = blockId;
-    end;
-    _G.go.set_parent(blockId, __arena_ArenaScreenRes.arena);
-    _G.msg.post(blockId, __arena_BlockViewMessages.setup, _hx_o({__fields__={block=true,reason=true},block=_g,reason=event[3]}));
-  elseif (tmp) == 2 then 
-    local _g = event[2];
-    local ret = _self.blocks.h[_g];
-    if (ret == __haxe_ds_IntMap.tnull) then 
-      ret = nil;
-    end;
-    local blockId = ret;
-    if (blockId ~= nil) then 
-      _G.go.delete(blockId);
-      _self.blocks:remove(_g);
-    end;
-  elseif (tmp) == 3 then 
-    local ret = _self.blocks.h[event[2]];
-    if (ret == __haxe_ds_IntMap.tnull) then 
-      ret = nil;
-    end;
-    local blockId = ret;
-    if (blockId ~= nil) then 
-      _G.msg.post(blockId, __arena_BlockViewMessages.move, _hx_o({__fields__={x=true,y=true},x=event[3],y=event[4]}));
-    end;
-  elseif (tmp) == 4 then  end;
+__arena_ArenaScreen.prototype.onResize = function(self,_self,size) 
+end
+__arena_ArenaScreen.prototype.onBlockSpawned = function(self,_self,block,reason) 
+  local blockId = _G.factory.create(__arena_ArenaScreenRes.arena_block_factory);
+  local _this = _self.blocks;
+  local key = block.id;
+  if (blockId == nil) then 
+    _this.h[key] = __haxe_ds_IntMap.tnull;
+  else
+    _this.h[key] = blockId;
+  end;
+  _G.go.set_parent(blockId, __arena_ArenaScreenRes.arena);
+  _G.msg.post(blockId, __arena_BlockViewMessages.setup, _hx_o({__fields__={block=true,reason=true},block=block,reason=reason}));
+end
+__arena_ArenaScreen.prototype.onBlockDespawned = function(self,_self,id) 
+  local ret = _self.blocks.h[id];
+  if (ret == __haxe_ds_IntMap.tnull) then 
+    ret = nil;
+  end;
+  local blockId = ret;
+  if (blockId ~= nil) then 
+    _G.go.delete(blockId);
+    _self.blocks:remove(id);
+  end;
+end
+__arena_ArenaScreen.prototype.onBlockMoved = function(self,_self,id,x,y) 
+  local ret = _self.blocks.h[id];
+  if (ret == __haxe_ds_IntMap.tnull) then 
+    ret = nil;
+  end;
+  local blockId = ret;
+  if (blockId ~= nil) then 
+    _G.msg.post(blockId, __arena_BlockViewMessages.move, _hx_o({__fields__={x=true,y=true},x=x,y=y}));
+  end;
+end
+__arena_ArenaScreen.prototype.onMatched = function(self,_self,x,y,score) 
 end
 
 __arena_ArenaScreen.prototype.__class__ =  __arena_ArenaScreen
@@ -1038,14 +1042,15 @@ setmetatable(__arena_BlockView.prototype,{__index=__defold_support_Script.protot
 __arena_BlockViewRes.new = {}
 __arena_BlockViewRes.__name__ = true
 
-__arena_stage_Arena.new = function(stage,listener) 
+__arena_stage_Arena.new = function(stage,_self,listener) 
   local self = _hx_new(__arena_stage_Arena.prototype)
-  __arena_stage_Arena.super(self,stage,listener)
+  __arena_stage_Arena.super(self,stage,_self,listener)
   return self
 end
-__arena_stage_Arena.super = function(self,stage,listener) 
+__arena_stage_Arena.super = function(self,stage,_self,listener) 
   self._cellsLocks = 0;
   self._stage = stage;
+  self._self = _self;
   self._listener = listener;
   local size = self._stage.size;
   self._cells = Array.new();
@@ -1060,11 +1065,11 @@ __arena_stage_Arena.super = function(self,stage,listener)
       row:push(_hx_o({__fields__={lock=true},lock=0}));
     end;
   end;
-  self._listener(__arena_stage_ArenaEvent.Resize(self._stage.size));
+  self._listener:onResize(self._self, self._stage.size);
 end
 __arena_stage_Arena.__name__ = true
-__arena_stage_Arena.Empty = function(listener) 
-  do return __arena_stage_Arena.new(_hx_o({__fields__={identity=true,size=true,cells=true},identity=0,size=8,cells=__arena_stage_CellsExt.Empty(8)}), listener) end;
+__arena_stage_Arena.Empty = function(_self,listener) 
+  do return __arena_stage_Arena.new(_hx_o({__fields__={identity=true,size=true,cells=true},identity=0,size=8,cells=__arena_stage_CellsExt.Empty(8)}), _self, listener) end;
 end
 __arena_stage_Arena.prototype = _hx_e();
 __arena_stage_Arena.prototype.getId = function(self) 
@@ -1091,12 +1096,12 @@ __arena_stage_Arena.prototype.update = function(self,dt)
 end
 __arena_stage_Arena.prototype.spawnBlock = function(self,x,y,kind,reason) 
   if (self._stage.cells[y][x].block ~= nil) then 
-    self._listener(__arena_stage_ArenaEvent.BlockDespawned(self._stage.cells[y][x].block.id));
+    self._listener:onBlockDespawned(self._self, self._stage.cells[y][x].block.id);
   end;
   local tmp = self._stage.cells[y];
   local tmp1 = self:getId();
   tmp[x].block = _hx_o({__fields__={id=true,x=true,y=true,kind=true},id=tmp1,x=x,y=y,kind=kind});
-  self._listener(__arena_stage_ArenaEvent.BlockSpawned(self._stage.cells[y][x].block, reason));
+  self._listener:onBlockSpawned(self._self, self._stage.cells[y][x].block, reason);
 end
 __arena_stage_Arena.prototype.lockCell = function(self,x,y) 
   local fh = self._cells[y][x];
@@ -1132,7 +1137,7 @@ __arena_stage_Arena.prototype.touchCell = function(self,x,y)
       break;
     end;
     cells[sy][sx].block = nil;
-    self._listener(__arena_stage_ArenaEvent.BlockDespawned(block[0].id));
+    self._listener:onBlockDespawned(self._self, block[0].id);
     score = score + 1;
     local consumer = (function(block) 
       do return function(bx,by,cell) 
@@ -1174,6 +1179,7 @@ __arena_stage_Arena.prototype.touchCell = function(self,x,y)
     end;
     
   end;
+  self._listener:onMatched(self._self, x, y, score);
   self:handleMatch(x, y, score);
 end
 __arena_stage_Arena.prototype.handleMatch = function(self,x,y,score) 
@@ -1226,7 +1232,7 @@ __arena_stage_Arena.prototype.handleEmptyCells = function(self)
       block.y = y - 1;
       cells[y - 1][x].block = block;
       cells[y][x].block = nil;
-      self._listener(__arena_stage_ArenaEvent.BlockMoved(block.id, x, y - 1));until true
+      self._listener:onBlockMoved(self._self, block.id, x, y - 1);until true
       if _hx_continue_2 then 
       _hx_continue_2 = false;
       break;
@@ -1243,13 +1249,6 @@ __arena_stage_ArenaConst.__name__ = true
 __arena_stage_ArenaConst.tileCenter = function(x,y) 
   do return _G.vmath.vector3((x * 92) + 46., (y * 92) + 46., 0) end;
 end
-_hxClasses["arena.stage.ArenaEvent"] = { __ename__ = true, __constructs__ = _hx_tab_array({[0]="Resize","BlockSpawned","BlockDespawned","BlockMoved","BlockKindChanged"},5)}
-__arena_stage_ArenaEvent = _hxClasses["arena.stage.ArenaEvent"];
-__arena_stage_ArenaEvent.Resize = function(size) local _x = _hx_tab_array({[0]="Resize",0,size,__enum__=__arena_stage_ArenaEvent}, 3); return _x; end 
-__arena_stage_ArenaEvent.BlockSpawned = function(block,reason) local _x = _hx_tab_array({[0]="BlockSpawned",1,block,reason,__enum__=__arena_stage_ArenaEvent}, 4); return _x; end 
-__arena_stage_ArenaEvent.BlockDespawned = function(id) local _x = _hx_tab_array({[0]="BlockDespawned",2,id,__enum__=__arena_stage_ArenaEvent}, 3); return _x; end 
-__arena_stage_ArenaEvent.BlockMoved = function(id,x,y) local _x = _hx_tab_array({[0]="BlockMoved",3,id,x,y,__enum__=__arena_stage_ArenaEvent}, 5); return _x; end 
-__arena_stage_ArenaEvent.BlockKindChanged = function(id,kind) local _x = _hx_tab_array({[0]="BlockKindChanged",4,id,kind,__enum__=__arena_stage_ArenaEvent}, 4); return _x; end 
 
 __arena_stage_CellsExt.new = {}
 __arena_stage_CellsExt.__name__ = true

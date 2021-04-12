@@ -1,24 +1,19 @@
 package arena.stage;
 
-abstract ArenaListener(ArenaEvent -> Void) from ArenaEvent -> Void {
-    inline public function call(event: ArenaEvent) {
-        this(event);
-    }
-}
-
 typedef CellContext = {
     var lock: Int;
 }
 
-class Arena {
+class Arena<TSelf> {
 
-    static public function Empty(listener: ArenaListener): Arena {
-        return new Arena(
+    static public function Empty<TSelf>(self: TSelf, listener: ArenaListener<TSelf>): Arena<TSelf> {
+        return new Arena<TSelf>(
             {
                 identity: 0,
                 size: 8,
                 cells: arena.stage.Cells.CellsExt.Empty(8)
             },
+            self,
             listener
         );
     }
@@ -28,13 +23,15 @@ class Arena {
     var _cellsLocks: Int = 0;
     var _cells: Array<Array<CellContext>>;
 
-    var _listener: ArenaListener;
+    var _self: TSelf;
+    var _listener: ArenaListener<TSelf>;
 
     private static var Colors: Array<BlockKind> = [Color1, Color2, Color3, Color4, Color5, Color6];
     private static var Rockets: Array<BlockKind> = [RocketHor, RocketVert];
 
-    public function new(stage: ArenaStage, listener: ArenaListener) {
+    public function new(stage: ArenaStage, self: TSelf, listener: ArenaListener<TSelf>) {
         _stage = stage;
+        _self = self;
         _listener = listener;
 
         var size = _stage.size;
@@ -49,7 +46,7 @@ class Arena {
             }
         }
 
-        _listener.call(Resize(_stage.size));
+        _listener.onResize(_self, _stage.size);
     }
 
     public function getId<T>(): Identity<T> {
@@ -74,7 +71,7 @@ class Arena {
 
     function spawnBlock(x: Int, y: Int, kind: BlockKind, reason: BlockSpawnReason) {
         if (_stage.cells[y][x].block != null) {
-            _listener.call(BlockDespawned(_stage.cells[y][x].block.id));
+            _listener.onBlockDespawned(_self, _stage.cells[y][x].block.id);
         }
         _stage.cells[y][x].block = {
             id: getId(),
@@ -82,7 +79,7 @@ class Arena {
             y: y,
             kind: kind
         }
-        _listener.call(BlockSpawned(_stage.cells[y][x].block, reason));
+        _listener.onBlockSpawned(_self, _stage.cells[y][x].block, reason);
     }
 
     public function lockCell(x: Int, y: Int) {
@@ -124,7 +121,7 @@ class Arena {
                 continue;
 
             cells[sy][sx].block = null;
-            _listener.call(BlockDespawned(block.id));
+            _listener.onBlockDespawned(_self, block.id);
 
             score++;
 
@@ -135,6 +132,7 @@ class Arena {
                 }
             });
         }
+        _listener.onMatched(_self, x, y, score);
         handleMatch(x, y, score);
     }
 
@@ -204,7 +202,7 @@ class Arena {
                 block.y = y-1;
                 cells[y-1][x].block = block;
                 cells[y][x].block = null;
-                _listener.call(BlockMoved(block.id, x, y - 1));
+                _listener.onBlockMoved(_self, block.id, x, y - 1);
             }
         }
     }

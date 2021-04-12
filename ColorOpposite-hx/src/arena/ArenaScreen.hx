@@ -10,24 +10,22 @@ import arena.stage.Arena;
 typedef ArenaScreenData = {
     var blocks: Map<Identity<Block>, Hash>;
 
-    var arena: Arena;
+    var arena: Arena<ArenaScreenData>;
 }
 
-class ArenaScreen extends Script<ArenaScreenData> {
+class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<ArenaScreenData> {
     public static function Enter() {
         Main.gotoScreen(MainRes.screen_collection_proxy_arena);
     }
 
-    public static var ArenaInst(default, null): Arena;
+    public static var ArenaInst(default, null): Arena<ArenaScreenData>;
 
     override function init(self:ArenaScreenData) {
         Msg.post(".", GoMessages.acquire_input_focus);
 
         self.blocks = new Map();
 
-        self.arena = Arena.Empty(function(event: ArenaEvent) {
-            onArenaEvent(self, event);
-        });
+        self.arena = Arena.Empty(self, this);
 
         ArenaInst = self.arena;
     }
@@ -56,30 +54,37 @@ class ArenaScreen extends Script<ArenaScreenData> {
         return true;
     }
 
-    function onArenaEvent(self: ArenaScreenData, event: ArenaEvent) {
-        switch (event) {
-            case Resize(size):
-            
-            case BlockSpawned(block, reason):
-                var blockId = Factory.create(ArenaScreenRes.arena_block_factory);
-                self.blocks[block.id] = blockId;
-                Go.set_parent(blockId, ArenaScreenRes.arena);
-                Msg.post(blockId, BlockViewMessages.setup, {block:block,reason: reason});
+    public function onResize(self: ArenaScreenData, size: Int): Void {
 
-            case BlockDespawned(id):
-                var blockId = self.blocks[id];
-                if (blockId != null) {
-                    Go.delete(blockId);
-                    self.blocks.remove(id);
-                }
+    }
+    
+    public function onBlockSpawned(self: ArenaScreenData, block: Block, reason: BlockSpawnReason): Void {
+        var blockId = Factory.create(ArenaScreenRes.arena_block_factory);
+        self.blocks[block.id] = blockId;
+        Go.set_parent(blockId, ArenaScreenRes.arena);
+        Msg.post(blockId, BlockViewMessages.setup, {block:block,reason: reason});
+    }
 
-            case BlockMoved(id, x, y):
-                var blockId = self.blocks[id];
-                if (blockId != null) {
-                    Msg.post(blockId, BlockViewMessages.move, {x:x, y:y});
-                }
-
-            case BlockKindChanged(id, kind):
+    public function onBlockDespawned(self: ArenaScreenData, id: Identity<Block>): Void {
+        var blockId = self.blocks[id];
+        if (blockId != null) {
+            Go.delete(blockId);
+            self.blocks.remove(id);
         }
+    }
+
+    public function onBlockMoved(self: ArenaScreenData, id: Identity<Block>, x: Int, y: Int): Void {
+        var blockId = self.blocks[id];
+        if (blockId != null) {
+            Msg.post(blockId, BlockViewMessages.move, {x:x, y:y});
+        }
+    }
+
+    public function onBlockKindChanged(self: ArenaScreenData, id: Identity<Block>, kind: BlockKind): Void {
+
+    }
+
+    public function onMatched(self: ArenaScreenData, x: Int, y: Int, score: Int): Void {
+
     }
 }
