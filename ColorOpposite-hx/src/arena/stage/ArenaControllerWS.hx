@@ -9,9 +9,9 @@ class ArenaControllerWS implements ArenaController {
 	var _conn: WebsocketConnection;
 	var _connected: Bool;
 	var _inGame: Bool;
-	var _teamId: Int;
-	var _currentTeamId = 1;
-	var _seed: Int;
+	var _teamId: Int = 0;
+	var _currentTeamId = 0;
+	var _seed: Int = 0;
 	var _inputQueue = new Array<Input>();
 
     public function new(url: String) {
@@ -51,6 +51,7 @@ class ArenaControllerWS implements ArenaController {
 	}
 
 	public function touch(x:Int, y:Int) {
+		_currentTeamId = 0;
 		send("touch", {
 			x: x,
 			y: y
@@ -66,10 +67,9 @@ class ArenaControllerWS implements ArenaController {
 	}
 
 	public function sendHash(turn:Int, hash:Int) {
-		Websocket.send(_conn, Json.stringify({
-			command: "hash",
-			hash: hash,
-		}));
+		send("hash", {
+			hash: hash
+		});
 	}
 
 	public function disconnect(): Void {
@@ -90,12 +90,14 @@ class ArenaControllerWS implements ArenaController {
 				_seed = Reflect.getProperty(data, "seed");
 				_teamId = Reflect.getProperty(data, "teamId");
 				_currentTeamId = 1;
-				trace(_teamId);
 
 			case "touch":
 				var x: Int = Reflect.getProperty(data, "x");
 				var y: Int = Reflect.getProperty(data, "y");
 				_inputQueue.push(Touch(x, y));
+
+			case "currentTurn":
+				_currentTeamId = Reflect.getProperty(data, "teamId");
 		}
 	}
 }

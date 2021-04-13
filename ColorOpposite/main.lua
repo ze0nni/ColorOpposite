@@ -1666,7 +1666,9 @@ __arena_stage_ArenaControllerWS.new = function(url)
 end
 __arena_stage_ArenaControllerWS.super = function(self,url) 
   self._inputQueue = Array.new();
-  self._currentTeamId = 1;
+  self._seed = 0;
+  self._currentTeamId = 0;
+  self._teamId = 0;
   local _gthis = self;
   self._conn = websocket.connect(url, _hx_e(), function(_,conn,data) 
     local _g = data.event;
@@ -1697,6 +1699,7 @@ __arena_stage_ArenaControllerWS.prototype.myTurn = function(self)
   do return self._teamId == self._currentTeamId end
 end
 __arena_stage_ArenaControllerWS.prototype.touch = function(self,x,y) 
+  self._currentTeamId = 0;
   self:send("touch", _hx_o({__fields__={x=true,y=true},x=x,y=y}));
 end
 __arena_stage_ArenaControllerWS.prototype.readInput = function(self) 
@@ -1706,7 +1709,7 @@ __arena_stage_ArenaControllerWS.prototype.readInput = function(self)
   do return __arena_stage_Input.None end
 end
 __arena_stage_ArenaControllerWS.prototype.sendHash = function(self,turn,hash) 
-  websocket.send(self._conn, __haxe_Json.stringify(_hx_o({__fields__={command=true,hash=true},command="hash",hash=hash})));
+  self:send("hash", _hx_o({__fields__={hash=true},hash=hash}));
 end
 __arena_stage_ArenaControllerWS.prototype.send = function(self,command,data) 
   websocket.send(self._conn, __haxe_Json.stringify(_hx_o({__fields__={command=true},command=command})));
@@ -1714,7 +1717,9 @@ __arena_stage_ArenaControllerWS.prototype.send = function(self,command,data)
 end
 __arena_stage_ArenaControllerWS.prototype.handleMessage = function(self,data) 
   local _g = Reflect.getProperty(data, "command");
-  if (_g) == "startGame" then 
+  if (_g) == "currentTurn" then 
+    self._currentTeamId = Reflect.getProperty(data, "teamId");
+  elseif (_g) == "startGame" then 
     self._inGame = true;
     self._seed = Reflect.getProperty(data, "seed");
     self._teamId = Reflect.getProperty(data, "teamId");

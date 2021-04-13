@@ -4,16 +4,24 @@ import (
 	"errors"
 )
 
+const Rounds = 3
+const RountTurns = 3
+
 func newRoom(left *player, right *player) *room {
+	left.turns = RountTurns
 	return &room{
-		left:  left,
-		right: right,
+		left:          left,
+		right:         right,
+		currentPlayer: left,
 	}
 }
 
 type room struct {
-	left  *player
-	right *player
+	left          *player
+	right         *player
+	currentPlayer *player
+
+	round int
 }
 
 func (r *room) otherPlayer(this *player) *player {
@@ -29,6 +37,8 @@ func (r *room) Play() (RoomResult, error) {
 	startGameCmd := &startGame{}
 	startGameCmd.Cmd = "startGame"
 	startGameCmd.Seed = 0
+	startGameCmd.Rounds = Rounds
+	startGameCmd.TurnsForRound = RountTurns
 
 	startGameCmd.TeamId = 1
 	err := r.left.conn.WriteJSON(&startGameCmd)
@@ -68,11 +78,18 @@ func (r *room) readPlayerInput(p *player, input chan<- struct{}, errorCh chan<- 
 			errorCh <- err
 			return
 		}
-		r.left.lock.Lock()
-		r.right.lock.Lock()
+		p.lock.Lock()
 
 		switch cmd.Cmd {
 		case "touch":
+			if r.currentPlayer != p {
+				errorCh <- errors.New("Not current player")
+			}
+			if p.turns <= 0 {
+				errorCh <- errors.New("No more turns")
+			}
+			p.turns -= 1
+
 			var touchCmd touchCommand
 			err = p.conn.ReadJSON(&touchCmd)
 			if err != nil {
@@ -82,10 +99,13 @@ func (r *room) readPlayerInput(p *player, input chan<- struct{}, errorCh chan<- 
 			touchCmd.Cmd = "touch"
 			r.otherPlayer(p).conn.WriteJSON(touchCmd)
 		case "hash":
+			var hashCmd clientHashCommand
+			p.conn.ReadJSON(&hashCmd)
+			p.queue = append(p.queue, &hashCmd)
+			input <- struct{}{}
 		}
 
-		r.left.lock.Unlock()
-		r.right.lock.Unlock()
+		p.lock.Unlock()
 	}
 }
 
@@ -94,18 +114,45 @@ func (r *room) performCommands() error {
 	r.right.lock.Lock()
 	defer r.left.lock.Unlock()
 	defer r.right.lock.Unlock()
+
 	for len(r.left.queue) > 0 &&
 		len(r.right.queue) > 0 {
+
 		left := r.left.queue[0]
 		r.left.queue = r.left.queue[1:]
-		right := r.left.queue[0]
+
+		right := r.right.queue[0]
 		r.right.queue = r.right.queue[1:]
+
 		if left.Name() != right.Name() {
 			return errors.New("command names not match")
 		}
 		left.Apply(r, r.left)
 		right.Apply(r, r.right)
-		//TODO check conditions
+
+		if left.Name() == "hash" {
+			if r.currentPlayer.turns == 0 {
+				r.currentPlayer = r.otherPlayer(r.currentPlayer)
+				r.currentPlayer.turns = RountTurns
+				if r.currentPlayer == r.left {
+					r.round += 1
+				}
+			}
+
+			var currentTurnCmd currentTurnCommand
+			currentTurnCmd.Cmd = "currentTurn"
+			currentTurnCmd.TeamId = r.currentPlayer.teamId
+
+			err := r.left.conn.WriteJSON(&currentTurnCmd)
+			if err != nil {
+				return err
+			}
+
+			err = r.right.conn.WriteJSON(&currentTurnCmd)
+			if err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
