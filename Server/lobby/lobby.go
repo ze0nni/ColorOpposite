@@ -16,7 +16,8 @@ type OnMatch func(*websocket.Conn, *shared.Player, *websocket.Conn, *shared.Play
 
 func NewLobby(onMatch OnMatch) *Lobby {
 	return &Lobby{
-		connections: make(map[*connection]struct{}),
+		onMatch:     onMatch,
+		connections: []*connection{},
 	}
 }
 
@@ -24,14 +25,12 @@ type Lobby struct {
 	onMatch OnMatch
 
 	connectionsLock sync.Mutex
-	connections     map[*connection]struct{}
-
-	matchmakeBuffer []*connection
+	connections     []*connection
 }
 
 func (l *Lobby) Run(ctx context.Context) {
 	log.Println("Run Lobby")
-	t := time.NewTicker(time.Second)
+	t := time.NewTicker(time.Second * 3)
 lobbyLoop:
 	for {
 		<-t.C
@@ -71,34 +70,35 @@ func (l *Lobby) Connect(ws *websocket.Conn, player *shared.Player) {
 
 	l.connectionsLock.Lock()
 	defer l.connectionsLock.Unlock()
-	l.connections[conn] = struct{}{}
+	l.connections = append(l.connections, conn)
 }
 
 func (l *Lobby) keepAlive() {
-	//TODO
+	var keepAlive struct {
+		Command string `json:"command"`
+	}
+	keepAlive.Command = "keepAlive"
+
+	for i := len(l.connections) - 1; i >= 0; i-- {
+		var conn = l.connections[i]
+		err := conn.ws.WriteJSON(&keepAlive)
+		if err == nil {
+			continue
+		}
+		l.connections = append(l.connections[:i], l.connections[i+1:]...)
+		log.Println("KeepAlive error: %s", err)
+		log.Println("Disconnected %s", conn.ws.RemoteAddr().String())
+	}
 }
 
 func (l *Lobby) match() {
-	if l.matchmakeBuffer == nil {
-		l.matchmakeBuffer = make([]*connection, MatchmakeBufferSize)
-	}
 	l.connectionsLock.Lock()
 	defer l.connectionsLock.Unlock()
-
-	index := 0
-	for conn, _ := range l.connections {
-		if index >= MatchmakeBufferSize {
-			break
-		}
-		l.matchmakeBuffer[index] = conn
-		index++
-	}
 	//TODO: Shuffle matchmakeBuffer
-	for i := 0; i < index/2; i++ {
-		left := l.matchmakeBuffer[i*2]
-		right := l.matchmakeBuffer[i*2+1]
-		delete(l.connections, left)
-		delete(l.connections, right)
+	for i := 0; i < len(l.connections)-1; i++ {
+		left := l.connections[i]
+		right := l.connections[i+1]
+		l.connections = append(l.connections[:i], l.connections[i+2:]...)
 		l.onMatch(left.ws, left.player, right.ws, right.player)
 	}
 }

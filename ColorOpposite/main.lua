@@ -215,6 +215,7 @@ __arena_stage_Arena = _hx_e()
 __arena_stage_ArenaConst = _hx_e()
 __arena_stage_Input = _hx_e()
 __arena_stage_ArenaController = _hx_e()
+__arena_stage_Common = _hx_e()
 __arena_stage_ArenaControllerWS = _hx_e()
 __arena_stage_CellsExt = _hx_e()
 __defold_CollectionproxyMessages = _hx_e()
@@ -590,6 +591,7 @@ Main.prototype.init = function(self,_self)
   Main.DISPLAY_HEIGHT = Std.parseInt(_G.sys.get_config("display.height"));
   _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
   _G.msg.post("@render:", self.use_fixed_fit_projection, _hx_o({__fields__={near=true,far=true},near=-1,far=1}));
+  __arena_ArenaScreen.Enter(__arena_stage_Common.new());
   __arena_ArenaScreen.Enter(__arena_stage_ArenaControllerWS.new("ws://127.0.0.1:80/ws"));
 end
 Main.prototype.on_message = function(self,_self,message_id,message,sender) 
@@ -1294,6 +1296,29 @@ __arena_stage_ArenaController.__name__ = true
 __arena_stage_ArenaController.prototype = _hx_e();
 
 __arena_stage_ArenaController.prototype.__class__ =  __arena_stage_ArenaController
+
+__arena_stage_Common.new = function() 
+  local self = _hx_new(__arena_stage_Common.prototype)
+  __arena_stage_Common.super(self)
+  return self
+end
+__arena_stage_Common.super = function(self) 
+end
+__arena_stage_Common.__name__ = true
+__arena_stage_Common.__interfaces__ = {__arena_stage_ArenaController}
+__arena_stage_Common.prototype = _hx_e();
+__arena_stage_Common.prototype.myTurn = function(self) 
+  do return true end
+end
+__arena_stage_Common.prototype.touch = function(self,x,y) 
+end
+__arena_stage_Common.prototype.readInput = function(self) 
+  do return __arena_stage_Input.None end
+end
+__arena_stage_Common.prototype.sendHash = function(self,turn,hash) 
+end
+
+__arena_stage_Common.prototype.__class__ =  __arena_stage_Common
 
 __arena_stage_ArenaControllerWS.new = function(url) 
   local self = _hx_new(__arena_stage_ArenaControllerWS.prototype)
