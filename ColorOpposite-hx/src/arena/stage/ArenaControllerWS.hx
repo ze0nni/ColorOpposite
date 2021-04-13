@@ -8,7 +8,7 @@ class ArenaControllerWS implements ArenaController {
     public function new(url: String) {
         var conn = Websocket.connect(url, {}, function (_, conn, data) {
 			if (data.event == EVENT_CONNECTED) {
-				Websocket.send(conn, "Hello");
+				Websocket.send(conn, '{"command":"handshake"}');
 			} else {
 				trace(data);
 			}

@@ -50,6 +50,8 @@ lobbyLoop:
 }
 
 func (l *Lobby) Connect(ws *websocket.Conn, player *shared.Player) {
+	log.Printf("Lobby Connect: %s", ws.RemoteAddr().String())
+
 	var handshake struct {
 		command string
 		token   string
@@ -57,7 +59,7 @@ func (l *Lobby) Connect(ws *websocket.Conn, player *shared.Player) {
 
 	err := ws.ReadJSON(&handshake)
 	if err != nil {
-		log.Printf("Read handshake %s", err)
+		log.Printf("Handshake error %s", err)
 		ws.Close()
 		return
 	}

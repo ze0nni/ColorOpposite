@@ -590,7 +590,7 @@ Main.prototype.init = function(self,_self)
   Main.DISPLAY_HEIGHT = Std.parseInt(_G.sys.get_config("display.height"));
   _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
   _G.msg.post("@render:", self.use_fixed_fit_projection, _hx_o({__fields__={near=true,far=true},near=-1,far=1}));
-  __arena_ArenaScreen.Enter(__arena_stage_ArenaControllerWS.new("ws://echo.websocket.org"));
+  __arena_ArenaScreen.Enter(__arena_stage_ArenaControllerWS.new("ws://127.0.0.1:80/ws"));
 end
 Main.prototype.on_message = function(self,_self,message_id,message,sender) 
   if (message_id) == ScreenMessages.goto_screen then 
@@ -1303,7 +1303,7 @@ end
 __arena_stage_ArenaControllerWS.super = function(self,url) 
   websocket.connect(url, _hx_e(), function(_,conn,data) 
     if (data.event == 0) then 
-      websocket.send(conn, "Hello");
+      websocket.send(conn, "{\"command\":\"handshake\"}");
     else
       __haxe_Log.trace(data, _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/arena/stage/ArenaControllerWS.hx",lineNumber=13,className="arena.stage.ArenaControllerWS",methodName="new"}));
     end;
