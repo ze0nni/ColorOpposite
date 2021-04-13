@@ -1,5 +1,6 @@
 package arena;
 
+import arena.stage.ArenaController.Common;
 import lua.lib.luasocket.socket.SelectResult;
 import defold.Go.GoMessages;
 import arena.BlockView.BlockViewMessages;
@@ -11,14 +12,25 @@ typedef ArenaScreenData = {
     var blocks: Map<Identity<Block>, Hash>;
 
     var arena: Arena<ArenaScreenData>;
+    var controller: ArenaController;
+}
+
+enum Enter {
+    Common;
+    WS(url: String);
 }
 
 class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<ArenaScreenData> {
 
-    static var Controller: ArenaController;
+    static var enter: Enter;
 
-    public static function Enter(controller: ArenaController) {
-        Controller = controller;
+    public static function EnterCommon() {
+        enter = Common;
+        Main.gotoScreen(MainRes.screen_collection_proxy_arena);
+    }
+
+    public static function EnterWs(url: String) {
+        enter = WS(url);
         Main.gotoScreen(MainRes.screen_collection_proxy_arena);
     }
 
@@ -29,17 +41,25 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
 
         self.blocks = new Map();
 
-        self.arena = Arena.Empty(self, this, Controller);
+        self.controller = switch (enter) {
+            case Common:
+                new Common();
+            case WS(url):
+                new ArenaControllerWS(url);
+        }
+
+        self.arena = Arena.Empty(self, this, self.controller);
 
         ArenaInst = self.arena;
     }
 
     override function final_(self:ArenaScreenData) {
         ArenaInst = null;
-        Controller = null;
     }
 
     override function update(self:ArenaScreenData, dt:Float) {
+        if (!self.controller.inGame())
+            return;
         self.arena.update(dt);
     }
 

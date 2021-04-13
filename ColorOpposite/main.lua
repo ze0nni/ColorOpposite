@@ -201,10 +201,12 @@ __defold_support_Script = _hx_e()
 local Main = _hx_e()
 local MainRes = _hx_e()
 local Math = _hx_e()
+local Reflect = _hx_e()
 local ScreenMessages = _hx_e()
 local String = _hx_e()
 local Std = _hx_e()
 __arena_ArenaAtlasRes = _hx_e()
+__arena_Enter = _hx_e()
 __arena_stage_ArenaListener = _hx_e()
 __arena_ArenaScreen = _hx_e()
 __arena_ArenaScreenRes = _hx_e()
@@ -591,8 +593,7 @@ Main.prototype.init = function(self,_self)
   Main.DISPLAY_HEIGHT = Std.parseInt(_G.sys.get_config("display.height"));
   _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
   _G.msg.post("@render:", self.use_fixed_fit_projection, _hx_o({__fields__={near=true,far=true},near=-1,far=1}));
-  __arena_ArenaScreen.Enter(__arena_stage_Common.new());
-  __arena_ArenaScreen.Enter(__arena_stage_ArenaControllerWS.new("ws://127.0.0.1:80/ws"));
+  __arena_ArenaScreen.EnterWs("ws://127.0.0.1:80/ws");
 end
 Main.prototype.on_message = function(self,_self,message_id,message,sender) 
   if (message_id) == ScreenMessages.goto_screen then 
@@ -632,6 +633,57 @@ Math.min = function(a,b)
     do return (0/0) end;
   else
     do return _G.math.min(a, b) end;
+  end;
+end
+
+Reflect.new = {}
+Reflect.__name__ = true
+Reflect.field = function(o,field) 
+  if (_G.type(o) == "string") then 
+    if (field == "length") then 
+      do return _hx_wrap_if_string_field(o,'length') end;
+    else
+      do return String.prototype[field] end;
+    end;
+  else
+    local _hx_status, _hx_result = pcall(function() 
+    
+        do return o[field] end;
+      return _hx_pcall_default
+    end)
+    if not _hx_status and _hx_result == "_hx_pcall_break" then
+    elseif not _hx_status then 
+      local _g = _hx_result;
+      do return nil end;
+    elseif _hx_result ~= _hx_pcall_default then
+      return _hx_result
+    end;
+  end;
+end
+Reflect.getProperty = function(o,field) 
+  if (o == nil) then 
+    do return nil end;
+  else
+    if ((o.__properties__ ~= nil) and (Reflect.field(o, Std.string("get_") .. Std.string(field)) ~= nil)) then 
+      do return Reflect.callMethod(o,Reflect.field(o, Std.string("get_") .. Std.string(field)),_hx_tab_array({}, 0)) end;
+    else
+      do return Reflect.field(o, field) end;
+    end;
+  end;
+end
+Reflect.callMethod = function(o,func,args) 
+  if ((args == nil) or (args.length == 0)) then 
+    do return func(o) end;
+  else
+    local self_arg = false;
+    if ((o ~= nil) and (o.__name__ == nil)) then 
+      self_arg = true;
+    end;
+    if (self_arg) then 
+      do return func(o, _hx_table.unpack(args, 0, args.length - 1)) end;
+    else
+      do return func(_hx_table.unpack(args, 0, args.length - 1)) end;
+    end;
   end;
 end
 
@@ -877,6 +929,11 @@ end
 
 __arena_ArenaAtlasRes.new = {}
 __arena_ArenaAtlasRes.__name__ = true
+_hxClasses["arena.Enter"] = { __ename__ = true, __constructs__ = _hx_tab_array({[0]="Common","WS"},2)}
+__arena_Enter = _hxClasses["arena.Enter"];
+__arena_Enter.Common = _hx_tab_array({[0]="Common",0,__enum__ = __arena_Enter},2)
+
+__arena_Enter.WS = function(url) local _x = _hx_tab_array({[0]="WS",1,url,__enum__=__arena_Enter}, 3); return _x; end 
 
 __arena_stage_ArenaListener.new = {}
 __arena_stage_ArenaListener.__name__ = true
@@ -894,22 +951,32 @@ __arena_ArenaScreen.super = function(self)
 end
 __arena_ArenaScreen.__name__ = true
 __arena_ArenaScreen.__interfaces__ = {__arena_stage_ArenaListener}
-__arena_ArenaScreen.Enter = function(controller) 
-  __arena_ArenaScreen.Controller = controller;
+__arena_ArenaScreen.EnterWs = function(url) 
+  __arena_ArenaScreen.enter = __arena_Enter.WS(url);
   Main.gotoScreen(MainRes.screen_collection_proxy_arena);
 end
 __arena_ArenaScreen.prototype = _hx_e();
 __arena_ArenaScreen.prototype.init = function(self,_self) 
   _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
   _self.blocks = __haxe_ds_IntMap.new();
-  _self.arena = __arena_stage_Arena.Empty(_self, self, __arena_ArenaScreen.Controller);
+  local _g = __arena_ArenaScreen.enter;
+  local tmp;
+  local tmp1 = _g[1];
+  if (tmp1) == 0 then 
+    tmp = __arena_stage_Common.new();
+  elseif (tmp1) == 1 then 
+    tmp = __arena_stage_ArenaControllerWS.new(_g[2]); end;
+  _self.controller = tmp;
+  _self.arena = __arena_stage_Arena.Empty(_self, self, _self.controller);
   __arena_ArenaScreen.ArenaInst = _self.arena;
 end
 __arena_ArenaScreen.prototype.final_ = function(self,_self) 
   __arena_ArenaScreen.ArenaInst = nil;
-  __arena_ArenaScreen.Controller = nil;
 end
 __arena_ArenaScreen.prototype.update = function(self,_self,dt) 
+  if (not _self.controller:inGame()) then 
+    do return end;
+  end;
   _self.arena:update(dt);
 end
 __arena_ArenaScreen.prototype.on_input = function(self,_self,action_id,action) 
@@ -1307,6 +1374,9 @@ end
 __arena_stage_Common.__name__ = true
 __arena_stage_Common.__interfaces__ = {__arena_stage_ArenaController}
 __arena_stage_Common.prototype = _hx_e();
+__arena_stage_Common.prototype.inGame = function(self) 
+  do return true end
+end
 __arena_stage_Common.prototype.myTurn = function(self) 
   do return true end
 end
@@ -1326,19 +1396,28 @@ __arena_stage_ArenaControllerWS.new = function(url)
   return self
 end
 __arena_stage_ArenaControllerWS.super = function(self,url) 
-  websocket.connect(url, _hx_e(), function(_,conn,data) 
-    if (data.event == 0) then 
+  self._currentTeamId = 1;
+  local _gthis = self;
+  self._conn = websocket.connect(url, _hx_e(), function(_,conn,data) 
+    local _g = data.event;
+    if (_g) == 0 then 
       websocket.send(conn, "{\"command\":\"handshake\"}");
-    else
-      __haxe_Log.trace(data, _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/arena/stage/ArenaControllerWS.hx",lineNumber=13,className="arena.stage.ArenaControllerWS",methodName="new"}));
-    end;
+      _gthis._connected = true;
+    elseif (_g) == 1 then 
+      _gthis._connected = false;
+    elseif (_g) == 2 then 
+      _gthis:handleMessage(_G.json.decode(data.message));
+    elseif (_g) == 3 then  end;
   end);
 end
 __arena_stage_ArenaControllerWS.__name__ = true
 __arena_stage_ArenaControllerWS.__interfaces__ = {__arena_stage_ArenaController}
 __arena_stage_ArenaControllerWS.prototype = _hx_e();
+__arena_stage_ArenaControllerWS.prototype.inGame = function(self) 
+  do return self._inGame end
+end
 __arena_stage_ArenaControllerWS.prototype.myTurn = function(self) 
-  do return false end
+  do return self._teamId == self._currentTeamId end
 end
 __arena_stage_ArenaControllerWS.prototype.touch = function(self,x,y) 
 end
@@ -1346,6 +1425,15 @@ __arena_stage_ArenaControllerWS.prototype.readInput = function(self)
   do return __arena_stage_Input.None end
 end
 __arena_stage_ArenaControllerWS.prototype.sendHash = function(self,turn,hash) 
+end
+__arena_stage_ArenaControllerWS.prototype.handleMessage = function(self,data) 
+  if (Reflect.getProperty(data, "command") == "startGame") then 
+    self._inGame = true;
+    self._seed = Reflect.getProperty(data, "seed");
+    self._teamId = Reflect.getProperty(data, "teamId");
+    self._currentTeamId = 1;
+    __haxe_Log.trace(self._teamId, _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/arena/stage/ArenaControllerWS.hx",lineNumber=70,className="arena.stage.ArenaControllerWS",methodName="handleMessage"}));
+  end;
 end
 
 __arena_stage_ArenaControllerWS.prototype.__class__ =  __arena_stage_ArenaControllerWS
@@ -1441,6 +1529,8 @@ end
 
 __haxe_Exception.prototype.__class__ =  __haxe_Exception
 
+__haxe_Exception.prototype.__properties__ =  {get_native="get_native"}
+
 __haxe_Log.new = {}
 __haxe_Log.__name__ = true
 __haxe_Log.formatOutput = function(v,infos) 
@@ -1517,6 +1607,7 @@ __haxe_ValueException.prototype = _hx_e();
 __haxe_ValueException.prototype.__class__ =  __haxe_ValueException
 __haxe_ValueException.__super__ = __haxe_Exception
 setmetatable(__haxe_ValueException.prototype,{__index=__haxe_Exception.prototype})
+setmetatable(__haxe_ValueException.prototype.__properties__,{__index=__haxe_Exception.prototype.__properties__})
 
 __haxe_ds_IntMap.new = function() 
   local self = _hx_new(__haxe_ds_IntMap.prototype)
@@ -1814,5 +1905,17 @@ _hx_table.maxn = _G.table.maxn or function(t)
   end
   return maxn
 end;
+
+_hx_wrap_if_string_field = function(o, fld)
+  if _G.type(o) == 'string' then
+    if fld == 'length' then
+      return _G.string.len(o)
+    else
+      return String.prototype[fld]
+    end
+  else
+    return o[fld]
+  end
+end
 
 _hx_static_init();

@@ -43,35 +43,28 @@ func (a *Arena) CreateRoom(
 	left *websocket.Conn,
 	leftPlayer *shared.Player,
 	right *websocket.Conn,
-	rightPlayer *shared.Player) {
+	rightPlayer *shared.Player,
+) {
+	p1 := &player{
+		conn:   left,
+		player: leftPlayer,
+		teamId: 1,
+	}
+	p2 := &player{
+		conn:   right,
+		player: rightPlayer,
+		teamId: 2,
+	}
+
+	room := newRoom(p1, p2)
 	a.roomsWG.Add(1)
 	defer a.roomsWG.Done()
-
-	var result RoomResult
-gameLoop:
-	for {
-		var lCmd command
-		var rCmd command
-
-		err := left.ReadJSON(&lCmd)
-		if err != nil {
-			result = RoomResultFoul
-			break gameLoop
-		}
-		err = right.ReadJSON(&rCmd)
-		if err != nil {
-			result = RoomResultFoul
-			break gameLoop
-		}
-		if lCmd != rCmd {
-			result = RoomResultFoul
-			break gameLoop
-		}
-		switch lCmd.Cmd {
-		case "touch":
-		case "hash":
-		case "bonusTurn":
-		}
+	defer left.Close()
+	defer right.Close()
+	result, err := room.Play()
+	if err != nil {
+		log.Printf("Room error %s", err)
 	}
+
 	a.handler(leftPlayer, rightPlayer, result)
 }

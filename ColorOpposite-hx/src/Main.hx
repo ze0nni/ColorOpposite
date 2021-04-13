@@ -48,8 +48,8 @@ class Main extends defold.support.Script<MainData> {
 		Msg.post(".", GoMessages.acquire_input_focus);
 		Msg.post("@render:", use_fixed_fit_projection, { near : -1, far : 1 });
 
-		ArenaScreen.Enter(new Common());
-		ArenaScreen.Enter(new ArenaControllerWS("ws://127.0.0.1:80/ws"));
+		//ArenaScreen.EnterCommon;
+		ArenaScreen.EnterWs("ws://127.0.0.1:80/ws");
 	}
 
 	override function on_message<TMessage>(self:MainData, message_id:Message<TMessage>, message:TMessage, sender:Url) {

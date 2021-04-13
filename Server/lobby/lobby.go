@@ -86,8 +86,9 @@ func (l *Lobby) keepAlive() {
 			continue
 		}
 		l.connections = append(l.connections[:i], l.connections[i+1:]...)
-		log.Println("KeepAlive error: %s", err)
-		log.Println("Disconnected %s", conn.ws.RemoteAddr().String())
+
+		log.Printf("KeepAlive error: %s", err)
+		log.Printf("Disconnected %s", conn.ws.RemoteAddr().String())
 	}
 }
 
@@ -95,10 +96,15 @@ func (l *Lobby) match() {
 	l.connectionsLock.Lock()
 	defer l.connectionsLock.Unlock()
 	//TODO: Shuffle matchmakeBuffer
+	matches := 0
 	for i := 0; i < len(l.connections)-1; i++ {
 		left := l.connections[i]
 		right := l.connections[i+1]
 		l.connections = append(l.connections[:i], l.connections[i+2:]...)
+		matches++
 		l.onMatch(left.ws, left.player, right.ws, right.player)
+	}
+	if matches > 0 {
+		log.Printf("Matched: %d", matches)
 	}
 }
