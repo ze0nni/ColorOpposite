@@ -9,3 +9,9 @@ type startGame struct {
 	Seed   int `json:"seed"`
 	TeamId int `json:"teamId"`
 }
+
+type touchCommand struct {
+	command
+	X int `json:"x"`
+	Y int `json:"y"`
+}
