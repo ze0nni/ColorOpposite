@@ -9,4 +9,6 @@ interface ArenaListener<TSelf> {
     function onBlockKindChanged(self: TSelf, id: Identity<Block>, kind: BlockKind): Void;
 
     function onMatched(self: TSelf, x: Int, y: Int, score: Int): Void;
+
+    function onCurrentTurn(self: TSelf, teamId: Int): Void;
 }

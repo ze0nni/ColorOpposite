@@ -75,11 +75,14 @@ class Arena<TSelf> {
         handleGenerateBlocks();
         handleEmptyCells();
 
-        if (!_lockForUpdate && !_controller.myTurn() && _cellsLocks == 0) {
+        if (!_lockForUpdate && _cellsLocks == 0) {
             switch (_controller.readInput()) {
                 case None:
                 case Touch(x, y):
                     touchCellInternal(x, y);
+
+                case CurrentTurn(teamId):
+                    _listener.onCurrentTurn(_self, teamId);
             }
         }
 

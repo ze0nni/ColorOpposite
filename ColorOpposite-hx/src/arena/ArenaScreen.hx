@@ -80,7 +80,20 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
     }
 
     public function onResize(self: ArenaScreenData, size: Int): Void {
-
+        var width = size * ArenaConst.TileSize;
+        Go.set_position(
+            Vmath.vector3(width/2, width/2, 1),
+            ArenaScreenRes.solid
+        );
+        Go.set_scale(
+            width * (64/ArenaConst.TileSize),
+            ArenaScreenRes.solid
+        );
+        Go.set(
+            ArenaScreenRes.solid_sprite,
+            "tint",
+            Vmath.vector4(0, 0, 0, 0.5)
+        );
     }
     
     public function onBlockSpawned(self: ArenaScreenData, block: Block, reason: BlockSpawnReason): Void {
@@ -111,5 +124,13 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
 
     public function onMatched(self: ArenaScreenData, x: Int, y: Int, score: Int): Void {
 
+    }
+
+    public function onCurrentTurn(self: ArenaScreenData, teamId: Int): Void {
+        if (teamId == self.controller.teamId()) {
+            Msg.post(ArenaScreenRes.solid, GoMessages.disable);
+        } else {
+            Msg.post(ArenaScreenRes.solid, GoMessages.enable);
+        }
     }
 }

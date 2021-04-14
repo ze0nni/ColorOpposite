@@ -3,6 +3,7 @@ package arena.stage;
 enum Input {
     None;
     Touch(x: Int, y: Int);
+    CurrentTurn(teamId: Int);
 }
 
 interface ArenaController {
@@ -10,6 +11,7 @@ interface ArenaController {
     function inGame(): Bool;
     function seed(): Int;
     function teamId(): Int;
+    function currentTeamId(): Int;
     function myTurn(): Bool;
     function touch(x: Int, y: Int): Void;
     function readInput(): Input;
@@ -20,7 +22,10 @@ interface ArenaController {
 
 class Common implements ArenaController {
     
+    var _inputQueue = new Array<Input>();
+
     public function new() {
+        _inputQueue.push(CurrentTurn(1));
     }
 
 	public function connected():Bool {
@@ -36,16 +41,27 @@ class Common implements ArenaController {
     }
 
     public function teamId(): Int {
-        return 0;
+        return 1;
+    }
+
+    public  function currentTeamId(): Int {
+        return 1;
     }
 
 	public function myTurn():Bool {
 		return true;
 	}
 
-	public function touch(x:Int, y:Int) {}
+	public function touch(x:Int, y:Int) {
+        _inputQueue.push(CurrentTurn(1));
+    }
 
 	public function readInput():Input {
+        trace(_inputQueue.length);
+		if (_inputQueue.length != 0) {
+			return _inputQueue.shift();
+		}
+
 		return None;
 	}
 

@@ -652,7 +652,7 @@ Main.prototype.init = function(self,_self)
   Main.DISPLAY_HEIGHT = Std.parseInt(_G.sys.get_config("display.height"));
   _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
   _G.msg.post("@render:", self.use_fixed_fit_projection, _hx_o({__fields__={near=true,far=true},near=-1,far=1}));
-  __arena_ArenaScreen.EnterWs("ws://127.0.0.1:80/ws");
+  __arena_ArenaScreen.EnterCommon();
 end
 Main.prototype.on_message = function(self,_self,message_id,message,sender) 
   if (message_id) == ScreenMessages.goto_screen then 
@@ -1193,6 +1193,7 @@ __arena_stage_ArenaListener.prototype.onBlockSpawned= nil;
 __arena_stage_ArenaListener.prototype.onBlockDespawned= nil;
 __arena_stage_ArenaListener.prototype.onBlockMoved= nil;
 __arena_stage_ArenaListener.prototype.onMatched= nil;
+__arena_stage_ArenaListener.prototype.onCurrentTurn= nil;
 
 __arena_stage_ArenaListener.prototype.__class__ =  __arena_stage_ArenaListener
 
@@ -1206,8 +1207,8 @@ __arena_ArenaScreen.super = function(self)
 end
 __arena_ArenaScreen.__name__ = true
 __arena_ArenaScreen.__interfaces__ = {__arena_stage_ArenaListener}
-__arena_ArenaScreen.EnterWs = function(url) 
-  __arena_ArenaScreen.enter = __arena_Enter.WS(url);
+__arena_ArenaScreen.EnterCommon = function() 
+  __arena_ArenaScreen.enter = __arena_Enter.Common;
   Main.gotoScreen(MainRes.screen_collection_proxy_arena);
 end
 __arena_ArenaScreen.prototype = _hx_e();
@@ -1248,6 +1249,10 @@ __arena_ArenaScreen.prototype.on_input = function(self,_self,action_id,action)
   do return true end
 end
 __arena_ArenaScreen.prototype.onResize = function(self,_self,size) 
+  local width = size * 92;
+  _G.go.set_position(_G.vmath.vector3(width / 2, width / 2, 1), __arena_ArenaScreenRes.solid);
+  _G.go.set_scale(width * 0.69565217391304346, __arena_ArenaScreenRes.solid);
+  _G.go.set(__arena_ArenaScreenRes.solid_sprite, "tint", _G.vmath.vector4(0, 0, 0, 0.5));
 end
 __arena_ArenaScreen.prototype.onBlockSpawned = function(self,_self,block,reason) 
   local blockId = _G.factory.create(__arena_ArenaScreenRes.arena_block_factory);
@@ -1283,6 +1288,13 @@ __arena_ArenaScreen.prototype.onBlockMoved = function(self,_self,id,x,y)
   end;
 end
 __arena_ArenaScreen.prototype.onMatched = function(self,_self,x,y,score) 
+end
+__arena_ArenaScreen.prototype.onCurrentTurn = function(self,_self,teamId) 
+  if (teamId == _self.controller:teamId()) then 
+    _G.msg.post(__arena_ArenaScreenRes.solid, __defold_GoMessages.disable);
+  else
+    _G.msg.post(__arena_ArenaScreenRes.solid, __defold_GoMessages.enable);
+  end;
 end
 
 __arena_ArenaScreen.prototype.__class__ =  __arena_ArenaScreen
@@ -1436,12 +1448,14 @@ end
 __arena_stage_Arena.prototype.update = function(self,dt) 
   self:handleGenerateBlocks();
   self:handleEmptyCells();
-  if ((not self._lockForUpdate and not self._controller:myTurn()) and (self._cellsLocks == 0)) then 
+  if (not self._lockForUpdate and (self._cellsLocks == 0)) then 
     local _g = self._controller:readInput();
     local tmp = _g[1];
     if (tmp) == 0 then 
     elseif (tmp) == 1 then 
-      self:touchCellInternal(_g[2], _g[3]); end;
+      self:touchCellInternal(_g[2], _g[3]);
+    elseif (tmp) == 2 then 
+      self._listener:onCurrentTurn(self._self, _g[2]); end;
   end;
   if ((self._requestForUpdateState and not self._lockForUpdate) and (self._cellsLocks == 0)) then 
     self._requestForUpdateState = false;
@@ -1616,16 +1630,18 @@ __arena_stage_ArenaConst.__name__ = true
 __arena_stage_ArenaConst.tileCenter = function(x,y) 
   do return _G.vmath.vector3((x * 92) + 46., (y * 92) + 46., 0) end;
 end
-_hxClasses["arena.stage.Input"] = { __ename__ = true, __constructs__ = _hx_tab_array({[0]="None","Touch"},2)}
+_hxClasses["arena.stage.Input"] = { __ename__ = true, __constructs__ = _hx_tab_array({[0]="None","Touch","CurrentTurn"},3)}
 __arena_stage_Input = _hxClasses["arena.stage.Input"];
 __arena_stage_Input.None = _hx_tab_array({[0]="None",0,__enum__ = __arena_stage_Input},2)
 
 __arena_stage_Input.Touch = function(x,y) local _x = _hx_tab_array({[0]="Touch",1,x,y,__enum__=__arena_stage_Input}, 4); return _x; end 
+__arena_stage_Input.CurrentTurn = function(teamId) local _x = _hx_tab_array({[0]="CurrentTurn",2,teamId,__enum__=__arena_stage_Input}, 3); return _x; end 
 
 __arena_stage_ArenaController.new = {}
 __arena_stage_ArenaController.__name__ = true
 __arena_stage_ArenaController.prototype = _hx_e();
 __arena_stage_ArenaController.prototype.inGame= nil;
+__arena_stage_ArenaController.prototype.teamId= nil;
 __arena_stage_ArenaController.prototype.myTurn= nil;
 __arena_stage_ArenaController.prototype.touch= nil;
 __arena_stage_ArenaController.prototype.readInput= nil;
@@ -1639,19 +1655,30 @@ __arena_stage_Common.new = function()
   return self
 end
 __arena_stage_Common.super = function(self) 
+  self._inputQueue = Array.new();
+  self._inputQueue:push(__arena_stage_Input.CurrentTurn(1));
 end
 __arena_stage_Common.__name__ = true
 __arena_stage_Common.__interfaces__ = {__arena_stage_ArenaController}
 __arena_stage_Common.prototype = _hx_e();
+__arena_stage_Common.prototype._inputQueue= nil;
 __arena_stage_Common.prototype.inGame = function(self) 
   do return true end
+end
+__arena_stage_Common.prototype.teamId = function(self) 
+  do return 1 end
 end
 __arena_stage_Common.prototype.myTurn = function(self) 
   do return true end
 end
 __arena_stage_Common.prototype.touch = function(self,x,y) 
+  self._inputQueue:push(__arena_stage_Input.CurrentTurn(1));
 end
 __arena_stage_Common.prototype.readInput = function(self) 
+  __haxe_Log.trace(self._inputQueue.length, _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/arena/stage/ArenaController.hx",lineNumber=60,className="arena.stage.Common",methodName="readInput"}));
+  if (self._inputQueue.length ~= 0) then 
+    do return self._inputQueue:shift() end;
+  end;
   do return __arena_stage_Input.None end
 end
 __arena_stage_Common.prototype.sendHash = function(self,turn,hash) 
@@ -1668,6 +1695,7 @@ __arena_stage_ArenaControllerWS.super = function(self,url)
   self._inputQueue = Array.new();
   self._seed = 0;
   self._currentTeamId = 0;
+  self._activeTeamId = 0;
   self._teamId = 0;
   local _gthis = self;
   self._conn = websocket.connect(url, _hx_e(), function(_,conn,data) 
@@ -1689,17 +1717,21 @@ __arena_stage_ArenaControllerWS.prototype._conn= nil;
 __arena_stage_ArenaControllerWS.prototype._connected= nil;
 __arena_stage_ArenaControllerWS.prototype._inGame= nil;
 __arena_stage_ArenaControllerWS.prototype._teamId= nil;
+__arena_stage_ArenaControllerWS.prototype._activeTeamId= nil;
 __arena_stage_ArenaControllerWS.prototype._currentTeamId= nil;
 __arena_stage_ArenaControllerWS.prototype._seed= nil;
 __arena_stage_ArenaControllerWS.prototype._inputQueue= nil;
+__arena_stage_ArenaControllerWS.prototype.teamId = function(self) 
+  do return self._teamId end
+end
 __arena_stage_ArenaControllerWS.prototype.inGame = function(self) 
   do return self._inGame end
 end
 __arena_stage_ArenaControllerWS.prototype.myTurn = function(self) 
-  do return self._teamId == self._currentTeamId end
+  do return self._teamId == self._activeTeamId end
 end
 __arena_stage_ArenaControllerWS.prototype.touch = function(self,x,y) 
-  self._currentTeamId = 0;
+  self._activeTeamId = 0;
   self:send("touch", _hx_o({__fields__={x=true,y=true},x=x,y=y}));
 end
 __arena_stage_ArenaControllerWS.prototype.readInput = function(self) 
@@ -1719,12 +1751,13 @@ __arena_stage_ArenaControllerWS.prototype.handleMessage = function(self,data)
   local _g = Reflect.getProperty(data, "command");
   if (_g) == "currentTurn" then 
     self._currentTeamId = Reflect.getProperty(data, "teamId");
+    self._activeTeamId = self._currentTeamId;
+    self._inputQueue:push(__arena_stage_Input.CurrentTurn(self._currentTeamId));
   elseif (_g) == "startGame" then 
     self._inGame = true;
     self._seed = Reflect.getProperty(data, "seed");
     self._teamId = Reflect.getProperty(data, "teamId");
     self._currentTeamId = 1;
-    __haxe_Log.trace(self._teamId, _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/arena/stage/ArenaControllerWS.hx",lineNumber=93,className="arena.stage.ArenaControllerWS",methodName="handleMessage"}));
   elseif (_g) == "touch" then 
     local x = Reflect.getProperty(data, "x");
     local y = Reflect.getProperty(data, "y");
@@ -2497,6 +2530,10 @@ local _hx_static_init = function()
   
   __arena_ArenaScreenRes.arena_block_factory = _G.msg.url("arena:/arena#block_factory");
   
+  __arena_ArenaScreenRes.solid = _G.msg.url("arena:/solid");
+  
+  __arena_ArenaScreenRes.solid_sprite = _G.msg.url("arena:/solid#sprite");
+  
   __arena_BlockViewMessages.setup = _G.hash("block_view_setup");
   
   __arena_BlockViewMessages.move = _G.hash("block_view_move");
@@ -2520,6 +2557,10 @@ local _hx_static_init = function()
   __defold_CollectionproxyMessages.unload = _G.hash("unload");
   
   __defold_GoMessages.acquire_input_focus = _G.hash("acquire_input_focus");
+  
+  __defold_GoMessages.disable = _G.hash("disable");
+  
+  __defold_GoMessages.enable = _G.hash("enable");
   
   __haxe_ds_IntMap.tnull = ({});
   

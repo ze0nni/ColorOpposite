@@ -10,6 +10,7 @@ class ArenaControllerWS implements ArenaController {
 	var _connected: Bool;
 	var _inGame: Bool;
 	var _teamId: Int = 0;
+	var _activeTeamId = 0;
 	var _currentTeamId = 0;
 	var _seed: Int = 0;
 	var _inputQueue = new Array<Input>();
@@ -35,8 +36,12 @@ class ArenaControllerWS implements ArenaController {
     }
 
     public function teamId(): Int {
-        return 0;
+        return _teamId;
     }
+
+	public function currentTeamId(): Int {
+		return _currentTeamId;
+	}
 
 	public function connected():Bool {
 		return _connected;
@@ -47,11 +52,11 @@ class ArenaControllerWS implements ArenaController {
     }
 
 	public function myTurn():Bool {
-		return _teamId == _currentTeamId;
+		return _teamId == _activeTeamId;
 	}
 
 	public function touch(x:Int, y:Int) {
-		_currentTeamId = 0;
+		_activeTeamId = 0;
 		send("touch", {
 			x: x,
 			y: y
@@ -98,6 +103,8 @@ class ArenaControllerWS implements ArenaController {
 
 			case "currentTurn":
 				_currentTeamId = Reflect.getProperty(data, "teamId");
+				_activeTeamId = _currentTeamId;
+				_inputQueue.push(CurrentTurn(_currentTeamId));
 		}
 	}
 }
