@@ -118,6 +118,10 @@ class Arena<TSelf> {
         _cellsLocks--;
     }
 
+    inline function isValidCell(x: Int, y: Int) {
+        return x > 0 && y > 0 && x < _stage.size && y < _stage.size;
+    }
+
     inline function IsFree(x: Int, y: Int): Bool {
         return _cells[y][x].lock == 0;
     }
@@ -125,6 +129,10 @@ class Arena<TSelf> {
     public function touchCell(x: Int, y: Int) {
         if (!_controller.myTurn())
             return;
+        if (!isValidCell(x, y)) {
+            return;
+        }
+
         _controller.touch(x, y);
         touchCellInternal(x, y);
     }

@@ -652,7 +652,7 @@ Main.prototype.init = function(self,_self)
   Main.DISPLAY_HEIGHT = Std.parseInt(_G.sys.get_config("display.height"));
   _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
   _G.msg.post("@render:", self.use_fixed_fit_projection, _hx_o({__fields__={near=true,far=true},near=-1,far=1}));
-  __arena_ArenaScreen.EnterCommon();
+  __arena_ArenaScreen.EnterWs("ws://127.0.0.1:80/ws");
 end
 Main.prototype.on_message = function(self,_self,message_id,message,sender) 
   if (message_id) == ScreenMessages.goto_screen then 
@@ -1207,8 +1207,8 @@ __arena_ArenaScreen.super = function(self)
 end
 __arena_ArenaScreen.__name__ = true
 __arena_ArenaScreen.__interfaces__ = {__arena_stage_ArenaListener}
-__arena_ArenaScreen.EnterCommon = function() 
-  __arena_ArenaScreen.enter = __arena_Enter.Common;
+__arena_ArenaScreen.EnterWs = function(url) 
+  __arena_ArenaScreen.enter = __arena_Enter.WS(url);
   Main.gotoScreen(MainRes.screen_collection_proxy_arena);
 end
 __arena_ArenaScreen.prototype = _hx_e();
@@ -1244,7 +1244,9 @@ __arena_ArenaScreen.prototype.on_input = function(self,_self,action_id,action)
     local mousePos = Main.screen_to_viewport(action.screen_x, action.screen_y);
     local arenaX = Std.int((mousePos.x - arenaPos.x) / 92);
     local arenaY = Std.int((mousePos.y - arenaPos.y) / 92);
-    _self.arena:touchCell(arenaX, arenaY);
+    if ((mousePos.x >= 0) and (mousePos.y >= 0)) then 
+      _self.arena:touchCell(arenaX, arenaY);
+    end;
   end;
   do return true end
 end
@@ -1485,6 +1487,9 @@ __arena_stage_Arena.prototype.unlockCell = function(self,x,y)
 end
 __arena_stage_Arena.prototype.touchCell = function(self,x,y) 
   if (not self._controller:myTurn()) then 
+    do return end;
+  end;
+  if (not ((((x > 0) and (y > 0)) and (x < self._stage.size)) and (y < self._stage.size))) then 
     do return end;
   end;
   self._controller:touch(x, y);

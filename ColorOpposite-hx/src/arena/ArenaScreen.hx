@@ -73,7 +73,9 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
                 var arenaX = Std.int((mousePos.x - arenaPos.x) / ArenaConst.TileSize);
                 var arenaY = Std.int((mousePos.y - arenaPos.y) / ArenaConst.TileSize);
                 
-                self.arena.touchCell(arenaX, arenaY);
+                if (mousePos.x >= 0 && mousePos.y >= 0) {
+                    self.arena.touchCell(arenaX, arenaY);
+                }
         }
 
         return true;
