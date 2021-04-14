@@ -232,7 +232,15 @@ __arena_stage_ArenaControllerWS = _hx_e()
 __arena_stage_CellsExt = _hx_e()
 __defold_CollectionproxyMessages = _hx_e()
 __defold_GoMessages = _hx_e()
+__meta_MetaScreen = _hx_e()
+__meta_MetaScreenGui = _hx_e()
 __defold_support_Init = _hx_e()
+__gui_Button = _hx_e()
+__gui_Capture = _hx_e()
+__gui_GUI = _hx_e()
+__gui__Listbox_ListboxListener_Impl_ = _hx_e()
+__gui_Listbox = _hx_e()
+__gui_TextMap = _hx_e()
 __gui_Windows = _hx_e()
 __haxe_IMap = _hx_e()
 __haxe_Exception = _hx_e()
@@ -240,6 +248,8 @@ __haxe_Json = _hx_e()
 __haxe_NativeStackTrace = _hx_e()
 __haxe_ValueException = _hx_e()
 __haxe_ds_IntMap = _hx_e()
+__haxe_ds_List = _hx_e()
+__haxe_ds__List_ListNode = _hx_e()
 __haxe_ds_StringMap = _hx_e()
 __haxe_format_JsonPrinter = _hx_e()
 __haxe_iterators_ArrayIterator = _hx_e()
@@ -656,7 +666,7 @@ Main.prototype.init = function(self,_self)
   Main.DISPLAY_HEIGHT = Std.parseInt(_G.sys.get_config("display.height"));
   _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
   _G.msg.post("@render:", self.use_fixed_fit_projection, _hx_o({__fields__={near=true,far=true},near=-1,far=1}));
-  __arena_ArenaScreen.EnterCommon();
+  __meta_MetaScreen.Enter();
 end
 Main.prototype.on_message = function(self,_self,message_id,message,sender) 
   if (message_id) == ScreenMessages.goto_screen then 
@@ -1221,8 +1231,6 @@ __arena_ArenaLobbyWindow.prototype.on_message = function(self,_self,message_id,m
     _G.gui.set_text(_self.label, "Disconnected");
   elseif (message_id) == __defold_GoMessages.enable then 
     _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
-  elseif (message_id) == __arena_ArenaLobbyWindowMessages.in_game then 
-    _G.gui.set_text(_self.label, "Game started");
   elseif (message_id) == __arena_ArenaLobbyWindowMessages.show then 
     _G.gui.set_text(_self.label, "Connecting..."); end;
 end
@@ -1269,6 +1277,10 @@ __arena_ArenaScreen.__name__ = true
 __arena_ArenaScreen.__interfaces__ = {__arena_stage_ArenaListener}
 __arena_ArenaScreen.EnterCommon = function() 
   __arena_ArenaScreen.enter = __arena_Enter.Common;
+  Main.gotoScreen(MainRes.screen_collection_proxy_arena);
+end
+__arena_ArenaScreen.EnterWs = function(url) 
+  __arena_ArenaScreen.enter = __arena_Enter.WS(url);
   Main.gotoScreen(MainRes.screen_collection_proxy_arena);
 end
 __arena_ArenaScreen.prototype = _hx_e();
@@ -1358,10 +1370,7 @@ __arena_ArenaScreen.prototype.onDisconnected = function(self,_self)
   _G.msg.post(_self.windows:show("lobby"), __arena_ArenaLobbyWindowMessages.disconnected);
 end
 __arena_ArenaScreen.prototype.onInGame = function(self,_self,rounds,turnsInRount) 
-  _G.msg.post(_self.windows:show("lobby"), __arena_ArenaLobbyWindowMessages.in_game);
-  _G.timer.delay(1, false, function(_,_1,_2) 
-    _self.windows:hide();
-  end);
+  _self.windows:hide();
 end
 __arena_ArenaScreen.prototype.onCurrentTurn = function(self,_self,teamId) 
   if (teamId == _self.controller:teamId()) then 
@@ -1891,6 +1900,53 @@ __defold_CollectionproxyMessages.__name__ = true
 __defold_GoMessages.new = {}
 __defold_GoMessages.__name__ = true
 
+__meta_MetaScreen.new = function() 
+  local self = _hx_new(__meta_MetaScreen.prototype)
+  __meta_MetaScreen.super(self)
+  return self
+end
+__meta_MetaScreen.super = function(self) 
+  __defold_support_Script.super(self);
+end
+__meta_MetaScreen.__name__ = true
+__meta_MetaScreen.Enter = function() 
+  Main.gotoScreen(MainRes.screen_collection_proxy_meta);
+end
+__meta_MetaScreen.prototype = _hx_e();
+
+__meta_MetaScreen.prototype.__class__ =  __meta_MetaScreen
+__meta_MetaScreen.__super__ = __defold_support_Script
+setmetatable(__meta_MetaScreen.prototype,{__index=__defold_support_Script.prototype})
+
+__meta_MetaScreenGui.new = function() 
+  local self = _hx_new(__meta_MetaScreenGui.prototype)
+  __meta_MetaScreenGui.super(self)
+  return self
+end
+__meta_MetaScreenGui.super = function(self) 
+  __defold_support_GuiScript.super(self);
+end
+__meta_MetaScreenGui.__name__ = true
+__meta_MetaScreenGui.prototype = _hx_e();
+__meta_MetaScreenGui.prototype.init = function(self,_self) 
+  _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
+  _self.gui = __gui_GUI.new(InputRes.touch, "MetaScreen", 1);
+  _self.gui:buttonUpDown("startSingle", true):OnClickHandle(function() 
+    __arena_ArenaScreen.EnterCommon();
+  end);
+  _self.gui:buttonUpDown("startPvp", true):OnClickHandle(function() 
+    __arena_ArenaScreen.EnterWs("ws://127.0.0.1:80/ws");
+  end);
+end
+__meta_MetaScreenGui.prototype.on_input = function(self,_self,action_id,action) 
+  _self.gui:on_input(action_id, action);
+  do return true end
+end
+
+__meta_MetaScreenGui.prototype.__class__ =  __meta_MetaScreenGui
+__meta_MetaScreenGui.__super__ = __defold_support_GuiScript
+setmetatable(__meta_MetaScreenGui.prototype,{__index=__defold_support_GuiScript.prototype})
+
 __defold_support_Init.new = {}
 __defold_support_Init.__name__ = true
 __defold_support_Init.init = function(exports) 
@@ -1928,6 +1984,287 @@ __defold_support_Init.init = function(exports)
   exports.arena_ArenaScreen_on_input = function(_self,action_id,action) 
     do return script:on_input(_self, action_id, action) end;
   end;
+  local script = __meta_MetaScreenGui.new();
+  exports.meta_MetaScreenGui_init = function(_self) 
+    script:init(_self);
+  end;
+  exports.meta_MetaScreenGui_on_input = function(_self,action_id,action) 
+    do return script:on_input(_self, action_id, action) end;
+  end;
+end
+
+__gui_Button.new = function(up,down) 
+  local self = _hx_new(__gui_Button.prototype)
+  __gui_Button.super(self,up,down)
+  return self
+end
+__gui_Button.super = function(self,up,down) 
+  self.visible = true;
+  self.clickHandle = __haxe_ds_List.new();
+  self.click = __haxe_ds_List.new();
+  self.up = up;
+  self.down = down;
+end
+__gui_Button.__name__ = true
+__gui_Button.prototype = _hx_e();
+__gui_Button.prototype.up= nil;
+__gui_Button.prototype.down= nil;
+__gui_Button.prototype.click= nil;
+__gui_Button.prototype.clickHandle= nil;
+__gui_Button.prototype.visible= nil;
+__gui_Button.prototype.OnClickHandle = function(self,handle) 
+  self.clickHandle:add(handle);
+  do return self end
+end
+
+__gui_Button.prototype.__class__ =  __gui_Button
+_hxClasses["gui.Capture"] = { __ename__ = true, __constructs__ = _hx_tab_array({[0]="None","ListBox"},2)}
+__gui_Capture = _hxClasses["gui.Capture"];
+__gui_Capture.None = _hx_tab_array({[0]="None",0,__enum__ = __gui_Capture},2)
+
+__gui_Capture.ListBox = function(listbox) local _x = _hx_tab_array({[0]="ListBox",1,listbox,__enum__=__gui_Capture}, 3); return _x; end 
+
+__gui_GUI.new = function(touchEvent,textRoot,scale) 
+  local self = _hx_new(__gui_GUI.prototype)
+  __gui_GUI.super(self,touchEvent,textRoot,scale)
+  return self
+end
+__gui_GUI.super = function(self,touchEvent,textRoot,scale) 
+  self._capture = __gui_Capture.None;
+  self.listboxes = Array.new();
+  self.buttons = Array.new();
+  self.touchEvent = touchEvent;
+  self.textRoot = textRoot;
+  self.scale = scale;
+end
+__gui_GUI.__name__ = true
+__gui_GUI.prototype = _hx_e();
+__gui_GUI.prototype.touchEvent= nil;
+__gui_GUI.prototype.textRoot= nil;
+__gui_GUI.prototype.scale= nil;
+__gui_GUI.prototype.buttons= nil;
+__gui_GUI.prototype.listboxes= nil;
+__gui_GUI.prototype._capture= nil;
+__gui_GUI.prototype.on_input = function(self,action_id,action) 
+  if (action_id ~= self.touchEvent) then 
+    do return false end;
+  end;
+  local _g = self._capture;
+  local tmp = _g[1];
+  if (tmp) == 0 then 
+  elseif (tmp) == 1 then 
+    self:performListbox(_g[2], action_id, action, true); end;
+  local result = false;
+  local _g = 0;
+  local _g1 = self.buttons;
+  while (_g < _g1.length) do 
+    local b = _g1[_g];
+    _g = _g + 1;
+    local tmp;
+    if (not b.visible) then 
+      tmp = false;
+    else
+      local result = false;
+      local over = _G.gui.pick_node(b.up, action.x, action.y);
+      if (over) then 
+        result = true;
+      end;
+      if (not action.released) then 
+        if (b.down ~= nil) then 
+          _G.gui.set_enabled(b.up, not over);
+          _G.gui.set_enabled(b.down, over);
+        end;
+      else
+        if (b.down ~= nil) then 
+          _G.gui.set_enabled(b.up, true);
+          _G.gui.set_enabled(b.down, false);
+        end;
+        if (over) then 
+          local _g_head = b.click.h;
+          while (_g_head ~= nil) do 
+            local val = _g_head.item;
+            _g_head = _g_head.next;
+            _G.msg.post(val.target, val.event);
+          end;
+          local _g1_head = b.clickHandle.h;
+          while (_g1_head ~= nil) do 
+            local val = _g1_head.item;
+            _g1_head = _g1_head.next;
+            val();
+          end;
+        end;
+      end;
+      tmp = result;
+    end;
+    if (tmp) then 
+      result = true;
+    end;
+  end;
+  local _g = 0;
+  local _g1 = self.listboxes;
+  while (_g < _g1.length) do 
+    local l = _g1[_g];
+    _g = _g + 1;
+    self:performListbox(l, action_id, action, false);
+    if (self._capture ~= __gui_Capture.None) then 
+      do return true end;
+    end;
+  end;
+  do return result end
+end
+__gui_GUI.prototype.performListbox = function(self,l,action_id,action,captured) 
+  if (not captured) then 
+    if (not action.pressed or not _G.gui.pick_node(l.box, action.x, action.y)) then 
+      do return end;
+    end;
+    self._capture = __gui_Capture.ListBox(l);
+    l:capture(action);
+  else
+    l:update(action);
+    if (action.released) then 
+      l:releaseCaptuere();
+      self._capture = __gui_Capture.None;
+    end;
+  end;
+end
+__gui_GUI.prototype.label = function(self,nodeName,customId) 
+  _G.gui.set_text(_G.gui.get_node(nodeName), __gui_TextMap.gui(self.textRoot, (function() 
+    local _hx_1
+    if (customId ~= nil) then 
+    _hx_1 = customId; else 
+    _hx_1 = nodeName; end
+    return _hx_1
+  end )()));
+end
+__gui_GUI.prototype.button = function(self,up,down) 
+  local button = __gui_Button.new(up, down);
+  if (button.down ~= nil) then 
+    _G.gui.set_enabled(up, true);
+    _G.gui.set_enabled(down, false);
+  end;
+  self.buttons:push(button);
+  do return button end
+end
+__gui_GUI.prototype.buttonUpDown = function(self,nodeName,withText) 
+  if (withText == nil) then 
+    withText = false;
+  end;
+  if (withText) then 
+    local id = Std.string(Std.string("") .. Std.string(nodeName)) .. Std.string("/text");
+    self:label(id);
+    self:label(Std.string(Std.string("") .. Std.string(nodeName)) .. Std.string("/text_down"), id);
+  end;
+  do return self:button(_G.gui.get_node(Std.string(Std.string("") .. Std.string(nodeName)) .. Std.string("/up")), _G.gui.get_node(Std.string(Std.string("") .. Std.string(nodeName)) .. Std.string("/down"))) end
+end
+
+__gui_GUI.prototype.__class__ =  __gui_GUI
+
+__gui__Listbox_ListboxListener_Impl_.new = {}
+__gui__Listbox_ListboxListener_Impl_.__name__ = true
+__gui__Listbox_ListboxListener_Impl_.call = function(this1,virualIndex,index) 
+  this1(virualIndex, index);
+end
+
+__gui_Listbox.new = function(box,content,scale) 
+  local self = _hx_new(__gui_Listbox.prototype)
+  __gui_Listbox.super(self,box,content,scale)
+  return self
+end
+__gui_Listbox.super = function(self,box,content,scale) 
+  self._itemPosTMP = _G.vmath.vector3();
+  self._listeners = __haxe_ds_List.new();
+  self._listY0 = 0;
+  self._listY = 0;
+  self._size = 0;
+  self._topVirtualItem = 0;
+  self._topItem = -1;
+  self._contentPivot = 0.5;
+  self._itemHeight = 1;
+  self.box = box;
+  self.content = content;
+  self.scale = scale;
+  self._contentSize = _G.gui.get_size(content);
+  self._contentPos0 = _G.gui.get_position(content);
+  self._contentPos = _G.vmath.vector3(self._contentPos0.x, self._contentPos0.y, self._contentPos0.z);
+end
+__gui_Listbox.__name__ = true
+__gui_Listbox.prototype = _hx_e();
+__gui_Listbox.prototype.box= nil;
+__gui_Listbox.prototype.content= nil;
+__gui_Listbox.prototype.scale= nil;
+__gui_Listbox.prototype._itemHeight= nil;
+__gui_Listbox.prototype._contentPivot= nil;
+__gui_Listbox.prototype._topItem= nil;
+__gui_Listbox.prototype._topVirtualItem= nil;
+__gui_Listbox.prototype._items= nil;
+__gui_Listbox.prototype._size= nil;
+__gui_Listbox.prototype._contentSize= nil;
+__gui_Listbox.prototype._contentPos0= nil;
+__gui_Listbox.prototype._contentPos= nil;
+__gui_Listbox.prototype._listY= nil;
+__gui_Listbox.prototype._listY0= nil;
+__gui_Listbox.prototype._captureY= nil;
+__gui_Listbox.prototype._listeners= nil;
+__gui_Listbox.prototype.capture = function(self,action) 
+  self._captureY = _hx_funcToField(action.y);
+  self._listY0 = self._listY;
+end
+__gui_Listbox.prototype.update = function(self,action) 
+  self._listY = _G.math.max(0, _G.math.min((self._itemHeight * self._size) - self._contentSize.y, self._listY0 + ((action.y - self._captureY) / self.scale)));
+  self:updateScroll(false);
+end
+__gui_Listbox.prototype.releaseCaptuere = function(self) 
+end
+__gui_Listbox.prototype._itemPosTMP= nil;
+__gui_Listbox.prototype.updateScroll = function(self,force) 
+  if (self._items == nil) then 
+    do return end;
+  end;
+  self._contentPos.y = self._contentPos0.y + (_G.math.fmod(self._listY, self._itemHeight));
+  _G.gui.set_position(self.content, self._contentPos);
+  local topItem = Std.int(self._listY / self._itemHeight);
+  if (topItem == self._topItem) then 
+    do return end;
+  end;
+  self._topItem = topItem;
+  self._topVirtualItem = _G.math.fmod(self._topItem, self._items.length);
+  local itemsSize = self._items.length;
+  local _g = 0;
+  local _g1 = self._items.length;
+  while (_g < _g1) do 
+    _g = _g + 1;
+    local i = _g - 1;
+    local index = self._topItem + i;
+    local vIndex = _G.math.fmod(index, itemsSize);
+    local node = self._items[vIndex];
+    if (index >= self._size) then 
+      _G.gui.set_enabled(node, false);
+    else
+      self._itemPosTMP.y = ((self._contentSize.y * self._contentPivot) + (self._itemHeight * self._contentPivot)) - (self._itemHeight * i);
+      _G.gui.set_enabled(node, true);
+      _G.gui.set_position(node, self._itemPosTMP);
+      local _g_head = self._listeners.h;
+      while (_g_head ~= nil) do 
+        local val = _g_head.item;
+        _g_head = _g_head.next;
+        __gui__Listbox_ListboxListener_Impl_.call(val, vIndex, index);
+      end;
+    end;
+  end;
+end
+
+__gui_Listbox.prototype.__class__ =  __gui_Listbox
+
+__gui_TextMap.new = {}
+__gui_TextMap.__name__ = true
+__gui_TextMap.gui = function(root,id) 
+  if (root == "MetaScreen") then 
+    if (id) == "startPvp/text" then 
+      do return "PvP" end;
+    elseif (id) == "startSingle/text" then 
+      do return "Single" end; end;
+  end;
+  do return Std.string(Std.string(Std.string("") .. Std.string(root)) .. Std.string(":")) .. Std.string(id) end;
 end
 
 __gui_Windows.new = function(root) 
@@ -2114,6 +2451,49 @@ __haxe_ds_IntMap.prototype.remove = function(self,key)
 end
 
 __haxe_ds_IntMap.prototype.__class__ =  __haxe_ds_IntMap
+
+__haxe_ds_List.new = function() 
+  local self = _hx_new(__haxe_ds_List.prototype)
+  __haxe_ds_List.super(self)
+  return self
+end
+__haxe_ds_List.super = function(self) 
+  self.length = 0;
+end
+__haxe_ds_List.__name__ = true
+__haxe_ds_List.prototype = _hx_e();
+__haxe_ds_List.prototype.h= nil;
+__haxe_ds_List.prototype.q= nil;
+__haxe_ds_List.prototype.length= nil;
+__haxe_ds_List.prototype.add = function(self,item) 
+  local next = nil;
+  local x = __haxe_ds__List_ListNode.new(item, next);
+  if (self.h == nil) then 
+    self.h = x;
+  else
+    self.q.next = x;
+  end;
+  self.q = x;
+  self.length = self.length + 1;
+end
+
+__haxe_ds_List.prototype.__class__ =  __haxe_ds_List
+
+__haxe_ds__List_ListNode.new = function(item,next) 
+  local self = _hx_new(__haxe_ds__List_ListNode.prototype)
+  __haxe_ds__List_ListNode.super(self,item,next)
+  return self
+end
+__haxe_ds__List_ListNode.super = function(self,item,next) 
+  self.item = item;
+  self.next = next;
+end
+__haxe_ds__List_ListNode.__name__ = true
+__haxe_ds__List_ListNode.prototype = _hx_e();
+__haxe_ds__List_ListNode.prototype.item= nil;
+__haxe_ds__List_ListNode.prototype.next= nil;
+
+__haxe_ds__List_ListNode.prototype.__class__ =  __haxe_ds__List_ListNode
 
 __haxe_ds_StringMap.new = function() 
   local self = _hx_new(__haxe_ds_StringMap.prototype)
@@ -2651,6 +3031,8 @@ local _hx_static_init = function()
   
   MainRes.screen_collection_proxy_arena = _G.msg.url("main:/screen#collection_proxy_arena");
   
+  MainRes.screen_collection_proxy_meta = _G.msg.url("main:/screen#collection_proxy_meta");
+  
   ScreenMessages.goto_screen = _G.hash("main_goto_screen");
   
   __arena_ArenaAtlasRes.Jelly_1 = _G.hash("Jelly_1");
@@ -2674,8 +3056,6 @@ local _hx_static_init = function()
   __arena_ArenaLobbyWindowMessages.connected = _G.hash("arena_lobby_window_connected");
   
   __arena_ArenaLobbyWindowMessages.disconnected = _G.hash("arena_lobby_window_disconnected");
-  
-  __arena_ArenaLobbyWindowMessages.in_game = _G.hash("arena_lobby_window_in_game");
   
   __arena_ArenaLobbyWindowRes.label = "label";
   

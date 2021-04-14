@@ -12,7 +12,6 @@ class ArenaLobbyWindowMessages {
     static var show(default, never) = new Message<Void>("arena_lobby_window_show");
     static var connected(default, never) = new Message<Void>("arena_lobby_window_connected");
     static var disconnected(default, never) = new Message<Void>("arena_lobby_window_disconnected");
-    static var in_game(default, never) = new Message<Void>("arena_lobby_window_in_game");
 }
 
 class ArenaLobbyWindow extends GuiScript<ArenaLobbyWindowData> {
@@ -36,9 +35,6 @@ class ArenaLobbyWindow extends GuiScript<ArenaLobbyWindowData> {
 
             case ArenaLobbyWindowMessages.disconnected:
                 Gui.set_text(self.label, "Disconnected");
-
-            case ArenaLobbyWindowMessages.in_game:
-                Gui.set_text(self.label, "Game started");
         }
     }
 

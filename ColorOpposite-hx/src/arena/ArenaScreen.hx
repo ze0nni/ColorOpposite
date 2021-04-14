@@ -134,7 +134,7 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
     }
 
     public function onMatched(self: ArenaScreenData, x: Int, y: Int, score: Int): Void {
-
+        
     }
 
     public function onConnected(self: ArenaScreenData): Void {
@@ -146,10 +146,7 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
     }
 
     public function onInGame(self: ArenaScreenData, rounds: Int, turnsInRount: Int): Void {
-        Msg.post(self.windows.show(WindowLobby), ArenaLobbyWindowMessages.in_game);
-        Timer.delay(1, false, function (_, _, _) {
-            self.windows.hide();
-        });
+        self.windows.hide();
     }
 
     public function onCurrentTurn(self: ArenaScreenData, teamId: Int): Void {
