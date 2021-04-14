@@ -10,4 +10,7 @@ class ArenaScreenRes {
 
     static var solid(default,never) = Msg.url("arena:/solid");
     static var solid_sprite(default,never) = Msg.url("arena:/solid#sprite");
+
+    static var gui(default,never) = Msg.url("arena:/gui");
+    static var window_lobby(default,never) = Msg.url("arena:/window_lobby");
 }

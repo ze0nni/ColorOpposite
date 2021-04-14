@@ -1,5 +1,7 @@
 package arena;
 
+import arena.ArenaLobbyWindow.ArenaLobbyWindowMessages;
+import gui.Windows;
 import arena.stage.ArenaController.Common;
 import lua.lib.luasocket.socket.SelectResult;
 import defold.Go.GoMessages;
@@ -9,6 +11,8 @@ import arena.stage.ArenaEvent;
 import arena.stage.Arena;
 
 typedef ArenaScreenData = {
+    var windows: Windows;
+
     var blocks: Map<Identity<Block>, Hash>;
 
     var arena: Arena<ArenaScreenData>;
@@ -24,6 +28,8 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
 
     static var enter: Enter;
 
+    static inline var WindowLobby = "lobby";
+
     public static function EnterCommon() {
         enter = Common;
         Main.gotoScreen(MainRes.screen_collection_proxy_arena);
@@ -37,7 +43,11 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
     public static var ArenaInst(default, null): Arena<ArenaScreenData>;
 
     override function init(self:ArenaScreenData) {
-        Msg.post(".", GoMessages.acquire_input_focus);
+        Msg.post(".", GoMessages.acquire_input_focus);        
+
+
+        self.windows = new Windows(ArenaScreenRes.gui);
+        self.windows.register(WindowLobby, ArenaScreenRes.window_lobby);
 
         self.blocks = new Map();
 
@@ -49,8 +59,9 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
         }
 
         self.arena = Arena.Empty(self, this, self.controller);
-
         ArenaInst = self.arena;
+
+        Msg.post(self.windows.show(WindowLobby), ArenaLobbyWindowMessages.show);
     }
 
     override function final_(self:ArenaScreenData) {
@@ -58,8 +69,6 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
     }
 
     override function update(self:ArenaScreenData, dt:Float) {
-        if (!self.controller.inGame())
-            return;
         self.arena.update(dt);
     }
 
@@ -126,6 +135,21 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
 
     public function onMatched(self: ArenaScreenData, x: Int, y: Int, score: Int): Void {
 
+    }
+
+    public function onConnected(self: ArenaScreenData): Void {
+        Msg.post(self.windows.show(WindowLobby), ArenaLobbyWindowMessages.connected);
+    }
+
+    public function onDisconnected(self: ArenaScreenData): Void {
+        Msg.post(self.windows.show(WindowLobby), ArenaLobbyWindowMessages.disconnected);
+    }
+
+    public function onInGame(self: ArenaScreenData, rounds: Int, turnsInRount: Int): Void {
+        Msg.post(self.windows.show(WindowLobby), ArenaLobbyWindowMessages.in_game);
+        Timer.delay(1, false, function (_, _, _) {
+            self.windows.hide();
+        });
     }
 
     public function onCurrentTurn(self: ArenaScreenData, teamId: Int): Void {

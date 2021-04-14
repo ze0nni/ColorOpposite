@@ -2,6 +2,9 @@ package arena.stage;
 
 enum Input {
     None;
+    Connected;
+    Disconnected;
+    InGame(rounds: Int, turnsInRount: Int);
     Touch(x: Int, y: Int);
     CurrentTurn(teamId: Int);
 }
@@ -25,6 +28,8 @@ class Common implements ArenaController {
     var _inputQueue = new Array<Input>();
 
     public function new() {
+        _inputQueue.push(Connected);
+        _inputQueue.push(InGame(0, 0));
         _inputQueue.push(CurrentTurn(1));
     }
 
@@ -57,7 +62,6 @@ class Common implements ArenaController {
     }
 
 	public function readInput():Input {
-        trace(_inputQueue.length);
 		if (_inputQueue.length != 0) {
 			return _inputQueue.shift();
 		}

@@ -19,9 +19,11 @@ class ArenaControllerWS implements ArenaController {
         _conn = Websocket.connect(url, {}, function (_, conn, data) {
 			switch (data.event) {
 				case EVENT_CONNECTED:
+					_inputQueue.push(Connected);
 					Websocket.send(conn, '{"command":"handshake"}');
 					_connected = true;
 				case EVENT_DISCONNECTED:
+					_inputQueue.push(Disconnected);
 					_connected = false;
 				case EVENT_MESSAGE:
 					handleMessage(Json.decode(data.message));
@@ -94,7 +96,10 @@ class ArenaControllerWS implements ArenaController {
 				_inGame = true;
 				_seed = Reflect.getProperty(data, "seed");
 				_teamId = Reflect.getProperty(data, "teamId");
+				var rounds: Int = Reflect.getProperty(data, "rounds");
+				var turnsForRound: Int = Reflect.getProperty(data, "turnsForRound");
 				_currentTeamId = 1;
+				_inputQueue.push(InGame(rounds, turnsForRound));
 
 			case "touch":
 				var x: Int = Reflect.getProperty(data, "x");

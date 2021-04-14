@@ -10,5 +10,8 @@ interface ArenaListener<TSelf> {
 
     function onMatched(self: TSelf, x: Int, y: Int, score: Int): Void;
 
+    function onConnected(self: TSelf): Void;
+    function onDisconnected(self: TSelf): Void;
+    function onInGame(self: TSelf, rounds: Int, turnsInRount: Int): Void;
     function onCurrentTurn(self: TSelf, teamId: Int): Void;
 }

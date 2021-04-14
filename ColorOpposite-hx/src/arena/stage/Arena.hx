@@ -1,5 +1,7 @@
 package arena.stage;
 
+import haxe.macro.Expr.Case;
+
 typedef CellContext = {
     var lock: Int;
 }
@@ -72,19 +74,18 @@ class Arena<TSelf> {
     }
 
     public function update(dt: Float) {
-        handleGenerateBlocks();
-        handleEmptyCells();
+        if (!_controller.inGame()) {
+            handleInput();
+            return;
+        }
+
 
         if (!_lockForUpdate && _cellsLocks == 0) {
-            switch (_controller.readInput()) {
-                case None:
-                case Touch(x, y):
-                    touchCellInternal(x, y);
-
-                case CurrentTurn(teamId):
-                    _listener.onCurrentTurn(_self, teamId);
-            }
+            handleInput();
         }
+
+        handleGenerateBlocks();
+        handleEmptyCells();
 
         if (_requestForUpdateState && !_lockForUpdate && _cellsLocks == 0) {
             _requestForUpdateState = false;
@@ -93,6 +94,27 @@ class Arena<TSelf> {
         }
 
         _lockForUpdate = false;
+    }
+
+    public function handleInput() {
+        switch (_controller.readInput()) {
+            case None:
+
+            case Connected:
+                _listener.onConnected(_self);
+
+            case Disconnected:
+                _listener.onDisconnected(_self);
+
+            case InGame(rounds, turnsInRount):
+                _listener.onInGame(_self, rounds, turnsInRount);
+
+            case Touch(x, y):
+                touchCellInternal(x, y);
+
+            case CurrentTurn(teamId):
+                _listener.onCurrentTurn(_self, teamId);
+        }
     }
 
     function spawnBlock(x: Int, y: Int, kind: BlockKind, reason: BlockSpawnReason) {
