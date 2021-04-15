@@ -2,6 +2,7 @@ package arena
 
 import (
 	"errors"
+	"time"
 )
 
 const Rounds = 3
@@ -57,12 +58,18 @@ func (r *room) Play() (RoomResult, error) {
 	go r.readPlayerInput(r.left, cmdChan, errorCh)
 	go r.readPlayerInput(r.right, cmdChan, errorCh)
 
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-cmdChan:
 			err = r.performCommands()
 			if err != nil {
 				return RoomResultFoul, err
+			}
+		case <-ticker.C:
+			if result, ok := r.checkEndGame(); ok {
+				return result, nil
 			}
 		case err = <-errorCh:
 			return RoomResultFoul, err
@@ -174,4 +181,21 @@ func (r *room) performCommands() error {
 		}
 	}
 	return nil
+}
+
+func (r *room) checkEndGame() (RoomResult, bool) {
+	var keepAlive struct {
+		Command string `json:"command"`
+	}
+	keepAlive.Command = "keepAlive"
+
+	if r.left.conn.WriteJSON(&keepAlive) != nil {
+		return RoomResultRightAuto, true
+	}
+
+	if r.right.conn.WriteJSON(&keepAlive) != nil {
+		return RoomResultRightAuto, true
+	}
+
+	return RoomResultDraw, false
 }

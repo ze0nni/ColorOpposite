@@ -8,6 +8,7 @@ enum Input {
     Touch(x: Int, y: Int);
     CurrentRound(teamId: Int, turnTime: Int);
     CurrentTurn(teamId: Int);
+    RoomResult(result: RoomResult);
 }
 
 interface ArenaController {

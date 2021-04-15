@@ -5,6 +5,7 @@ import (
 	"context"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -18,10 +19,12 @@ func NewArena(handler RoomDoneHandler) *Arena {
 
 type RoomResult int
 
-const RoomResultDraw = RoomResult(2)
+const RoomResultDraw = RoomResult(0)
 const RoomResultLeft = RoomResult(1)
 const RoomResultRight = RoomResult(2)
-const RoomResultFoul = RoomResult(3)
+const RoomResultLeftAuto = RoomResult(3)
+const RoomResultRightAuto = RoomResult(4)
+const RoomResultFoul = RoomResult(5)
 
 type RoomDoneHandler func(*shared.Player, *shared.Player, RoomResult)
 
@@ -66,5 +69,14 @@ func (a *Arena) CreateRoom(
 		log.Printf("Room error %s", err)
 	}
 
+	var roomResultCmd roomResultCommand
+	roomResultCmd.Cmd = "roomResult"
+	roomResultCmd.Result = result
+
+	left.WriteJSON(&roomResultCmd)
+	right.WriteJSON(&roomResultCmd)
+
 	a.handler(leftPlayer, rightPlayer, result)
+
+	time.Sleep(time.Second)
 }

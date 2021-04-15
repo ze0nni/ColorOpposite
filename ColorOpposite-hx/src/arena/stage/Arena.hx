@@ -127,6 +127,9 @@ class Arena<TSelf> {
 
             case CurrentTurn(teamId):
                 _listener.onCurrentTurn(_self, teamId);
+
+            case RoomResult(result):
+                _listener.onRoomResult(_self, result);
         }
     }
 

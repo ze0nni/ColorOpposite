@@ -1267,6 +1267,7 @@ __arena_stage_ArenaListener.prototype.onInGame= nil;
 __arena_stage_ArenaListener.prototype.onCurrentRound= nil;
 __arena_stage_ArenaListener.prototype.onCurrentTurn= nil;
 __arena_stage_ArenaListener.prototype.onTurnTimeLeft= nil;
+__arena_stage_ArenaListener.prototype.onRoomResult= nil;
 
 __arena_stage_ArenaListener.prototype.__class__ =  __arena_stage_ArenaListener
 
@@ -1388,6 +1389,9 @@ __arena_ArenaScreen.prototype.onCurrentTurn = function(self,_self,teamId)
 end
 __arena_ArenaScreen.prototype.onTurnTimeLeft = function(self,_self,left,total) 
   _G.msg.post(__arena_ArenaScreenRes.gui, __arena_ArenaScreenGuiMessages.time_left, _hx_o({__fields__={left=true,total=true},left=left,total=total}));
+end
+__arena_ArenaScreen.prototype.onRoomResult = function(self,_self,result) 
+  __meta_MetaScreen.Enter();
 end
 
 __arena_ArenaScreen.prototype.__class__ =  __arena_ArenaScreen
@@ -1610,7 +1614,9 @@ __arena_stage_Arena.prototype.handleInput = function(self)
     self._listener:onCurrentTurn(self._self, _g1);
     self._listener:onTurnTimeLeft(self._self, _g, _g);
   elseif (tmp) == 6 then 
-    self._listener:onCurrentTurn(self._self, _g[2]); end;
+    self._listener:onCurrentTurn(self._self, _g[2]);
+  elseif (tmp) == 7 then 
+    self._listener:onRoomResult(self._self, _g[2]); end;
 end
 __arena_stage_Arena.prototype.spawnBlock = function(self,x,y,kind,reason) 
   if (self._stage.cells[y][x].block ~= nil) then 
@@ -1795,7 +1801,7 @@ __arena_stage_ArenaConst.__name__ = true
 __arena_stage_ArenaConst.tileCenter = function(x,y) 
   do return _G.vmath.vector3((x * 92) + 46., (y * 92) + 46., 0) end;
 end
-_hxClasses["arena.stage.Input"] = { __ename__ = true, __constructs__ = _hx_tab_array({[0]="None","Connected","Disconnected","InGame","Touch","CurrentRound","CurrentTurn"},7)}
+_hxClasses["arena.stage.Input"] = { __ename__ = true, __constructs__ = _hx_tab_array({[0]="None","Connected","Disconnected","InGame","Touch","CurrentRound","CurrentTurn","RoomResult"},8)}
 __arena_stage_Input = _hxClasses["arena.stage.Input"];
 __arena_stage_Input.None = _hx_tab_array({[0]="None",0,__enum__ = __arena_stage_Input},2)
 
@@ -1807,6 +1813,7 @@ __arena_stage_Input.InGame = function(rounds,turnsInRount) local _x = _hx_tab_ar
 __arena_stage_Input.Touch = function(x,y) local _x = _hx_tab_array({[0]="Touch",4,x,y,__enum__=__arena_stage_Input}, 4); return _x; end 
 __arena_stage_Input.CurrentRound = function(teamId,turnTime) local _x = _hx_tab_array({[0]="CurrentRound",5,teamId,turnTime,__enum__=__arena_stage_Input}, 4); return _x; end 
 __arena_stage_Input.CurrentTurn = function(teamId) local _x = _hx_tab_array({[0]="CurrentTurn",6,teamId,__enum__=__arena_stage_Input}, 3); return _x; end 
+__arena_stage_Input.RoomResult = function(result) local _x = _hx_tab_array({[0]="RoomResult",7,result,__enum__=__arena_stage_Input}, 3); return _x; end 
 
 __arena_stage_ArenaController.new = {}
 __arena_stage_ArenaController.__name__ = true
@@ -1939,6 +1946,9 @@ __arena_stage_ArenaControllerWS.prototype.handleMessage = function(self,data)
   elseif (_g) == "currentTurn" then 
     self._activeTeamId = Reflect.getProperty(data, "teamId");
     self._inputQueue:push(__arena_stage_Input.CurrentTurn(self._currentTeamId));
+  elseif (_g) == "roomResult" then 
+    local result = Reflect.getProperty(data, "result");
+    self._inputQueue:push(__arena_stage_Input.RoomResult(result));
   elseif (_g) == "startGame" then 
     self._inGame = true;
     self._seed = Reflect.getProperty(data, "seed");

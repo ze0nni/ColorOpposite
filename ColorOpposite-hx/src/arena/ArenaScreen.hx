@@ -1,5 +1,6 @@
 package arena;
 
+import meta.MetaScreen;
 import arena.ArenaScreenGui.ArenaScreenGuiMessages;
 import arena.ArenaLobbyWindow.ArenaLobbyWindowMessages;
 import gui.Windows;
@@ -163,5 +164,9 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
 
     public function onTurnTimeLeft(self: ArenaScreenData, left: Int, total: Int): Void {
         Msg.post(ArenaScreenRes.gui, ArenaScreenGuiMessages.time_left, {left: left, total: total});
+    }
+
+    public function onRoomResult(self: ArenaScreenData, result: RoomResult): Void {
+        MetaScreen.Enter();
     }
 }

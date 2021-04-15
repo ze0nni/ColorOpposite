@@ -16,4 +16,5 @@ interface ArenaListener<TSelf> {
     function onCurrentRound(self: TSelf, teamId: Int): Void;
     function onCurrentTurn(self: TSelf, teamId: Int): Void;
     function onTurnTimeLeft(self: TSelf, left: Int, total: Int): Void;
+    function onRoomResult(self: TSelf, result: RoomResult): Void;
 }

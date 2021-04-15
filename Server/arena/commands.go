@@ -29,3 +29,8 @@ type currentTurnCommand struct {
 	command
 	TeamId int `json:"teamId"`
 }
+
+type roomResultCommand struct {
+	command
+	Result RoomResult `json:"result"`
+}
