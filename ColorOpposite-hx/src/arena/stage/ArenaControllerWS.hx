@@ -1,5 +1,6 @@
 package arena.stage;
 
+import haxe.macro.Type.Ref;
 import haxe.Json;
 import ws.Websocket;
 import arena.stage.ArenaController.Input;
@@ -65,6 +66,13 @@ class ArenaControllerWS implements ArenaController {
 		});
 	}
 
+	public function timeOut() {
+		_activeTeamId = 0;
+		send("timeOut", {
+			"teamId": _currentTeamId
+		});
+    }
+
 	public function readInput():Input {
 		if (_inputQueue.length != 0) {
 			return _inputQueue.shift();
@@ -106,9 +114,16 @@ class ArenaControllerWS implements ArenaController {
 				var y: Int = Reflect.getProperty(data, "y");
 				_inputQueue.push(Touch(x, y));
 
-			case "currentTurn":
+			case "currentRound":
 				_currentTeamId = Reflect.getProperty(data, "teamId");
 				_activeTeamId = _currentTeamId;
+				var turnTime: Int = Reflect.getProperty(data, "turnTime");
+				_inputQueue.push(CurrentRound(_currentTeamId, turnTime));
+
+			case "currentTurn":
+				_activeTeamId = Reflect.getProperty(data, "teamId");
+				
+				
 				_inputQueue.push(CurrentTurn(_currentTeamId));
 		}
 	}

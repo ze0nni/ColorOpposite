@@ -34,7 +34,11 @@ class Arena<TSelf> {
     var _listener: ArenaListener<TSelf>;
     var _controller: ArenaController;
 
-    private static var Colors: Array<BlockKind> = [Color1, Color2, Color3, Color4, Color5, Color6];
+    var _roundTime: Int;
+    var _roundStart: Float;
+    var _lastTimeLeft: Null<Int>;
+
+    private static var Colors: Array<BlockKind> = [Color1, Color2, Color3, Color4, /*Color5, Color6*/];
     private static var Rockets: Array<BlockKind> = [RocketHor, RocketVert];
 
     public function new(stage: ArenaStage, self: TSelf, listener: ArenaListener<TSelf>, controller: ArenaController) {
@@ -84,6 +88,7 @@ class Arena<TSelf> {
             handleInput();
         }
 
+        handleTimeLeft();
         handleGenerateBlocks();
         handleEmptyCells();
 
@@ -111,6 +116,14 @@ class Arena<TSelf> {
 
             case Touch(x, y):
                 touchCellInternal(x, y);
+
+            case CurrentRound(teamId, roundTime):
+                _roundTime = roundTime;
+                _roundStart = Os.clock();
+                _lastTimeLeft = roundTime;
+                _listener.onCurrentRound(_self, teamId);
+                _listener.onCurrentTurn(_self, teamId);
+                _listener.onTurnTimeLeft(_self, roundTime, roundTime);
 
             case CurrentTurn(teamId):
                 _listener.onCurrentTurn(_self, teamId);
@@ -234,6 +247,22 @@ class Arena<TSelf> {
     function handleMatch(x: Int, y: Int, score: Int) {
         if (score == 5) {
             spawnBlock(x, y, peekRandom(Rockets), Swap);
+        }
+    }
+
+    function handleTimeLeft() {
+        if (_lastTimeLeft == null) {
+            return;
+        }
+
+        var timeLeft = _roundTime - Std.int(Os.clock() - _roundStart);
+        if (timeLeft >= 0) {
+            if (timeLeft != _lastTimeLeft) {
+                _lastTimeLeft = timeLeft;
+                _listener.onTurnTimeLeft(_self, timeLeft, _roundTime);
+            }
+        } else {
+            _controller.timeOut();
         }
     }
 

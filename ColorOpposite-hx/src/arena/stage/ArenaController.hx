@@ -6,6 +6,7 @@ enum Input {
     Disconnected;
     InGame(rounds: Int, turnsInRount: Int);
     Touch(x: Int, y: Int);
+    CurrentRound(teamId: Int, turnTime: Int);
     CurrentTurn(teamId: Int);
 }
 
@@ -17,6 +18,7 @@ interface ArenaController {
     function currentTeamId(): Int;
     function myTurn(): Bool;
     function touch(x: Int, y: Int): Void;
+    function timeOut(): Void;
     function readInput(): Input;
     function sendHash(turn: Int, hash: Int): Void;
 
@@ -30,7 +32,7 @@ class Common implements ArenaController {
     public function new() {
         _inputQueue.push(Connected);
         _inputQueue.push(InGame(0, 0));
-        _inputQueue.push(CurrentTurn(1));
+        _inputQueue.push(CurrentRound(1, 15));
     }
 
 	public function connected():Bool {
@@ -59,6 +61,10 @@ class Common implements ArenaController {
 
 	public function touch(x:Int, y:Int) {
         _inputQueue.push(CurrentTurn(1));
+    }
+
+    public function timeOut() {
+        _inputQueue.push(CurrentRound(1, 15));
     }
 
 	public function readInput():Input {

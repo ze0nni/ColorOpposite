@@ -1,5 +1,6 @@
 package arena;
 
+import arena.ArenaScreenGui.ArenaScreenGuiMessages;
 import arena.ArenaLobbyWindow.ArenaLobbyWindowMessages;
 import gui.Windows;
 import arena.stage.ArenaController.Common;
@@ -149,11 +150,18 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
         self.windows.hide();
     }
 
+    public function onCurrentRound(self: ArenaScreenData, teamId: Int): Void {
+    }
+
     public function onCurrentTurn(self: ArenaScreenData, teamId: Int): Void {
         if (teamId == self.controller.teamId()) {
             Msg.post(ArenaScreenRes.solid, GoMessages.disable);
         } else {
             Msg.post(ArenaScreenRes.solid, GoMessages.enable);
         }
+    }
+
+    public function onTurnTimeLeft(self: ArenaScreenData, left: Int, total: Int): Void {
+        Msg.post(ArenaScreenRes.gui, ArenaScreenGuiMessages.time_left, {left: left, total: total});
     }
 }

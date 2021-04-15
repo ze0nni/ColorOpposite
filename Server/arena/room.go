@@ -6,6 +6,7 @@ import (
 
 const Rounds = 3
 const RountTurns = 3
+const TurnTime = 15
 
 func newRoom(left *player, right *player) *room {
 	left.turns = RountTurns
@@ -142,6 +143,7 @@ func (r *room) performCommands() error {
 			var currentTurnCmd currentTurnCommand
 			currentTurnCmd.Cmd = "currentTurn"
 			currentTurnCmd.TeamId = r.currentPlayer.teamId
+			currentTurnCmd.TurnTime = TurnTime
 
 			err := r.left.conn.WriteJSON(&currentTurnCmd)
 			if err != nil {

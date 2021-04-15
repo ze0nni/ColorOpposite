@@ -219,6 +219,9 @@ __arena_ArenaLobbyWindowRes = _hx_e()
 __arena_Enter = _hx_e()
 __arena_stage_ArenaListener = _hx_e()
 __arena_ArenaScreen = _hx_e()
+__arena_ArenaScreenGuiMessages = _hx_e()
+__arena_ArenaScreenGui = _hx_e()
+__arena_ArenaScreenGuiRes = _hx_e()
 __arena_ArenaScreenRes = _hx_e()
 __arena_BlockViewMessages = _hx_e()
 __arena_BlockView = _hx_e()
@@ -1261,7 +1264,9 @@ __arena_stage_ArenaListener.prototype.onMatched= nil;
 __arena_stage_ArenaListener.prototype.onConnected= nil;
 __arena_stage_ArenaListener.prototype.onDisconnected= nil;
 __arena_stage_ArenaListener.prototype.onInGame= nil;
+__arena_stage_ArenaListener.prototype.onCurrentRound= nil;
 __arena_stage_ArenaListener.prototype.onCurrentTurn= nil;
+__arena_stage_ArenaListener.prototype.onTurnTimeLeft= nil;
 
 __arena_stage_ArenaListener.prototype.__class__ =  __arena_stage_ArenaListener
 
@@ -1372,6 +1377,8 @@ end
 __arena_ArenaScreen.prototype.onInGame = function(self,_self,rounds,turnsInRount) 
   _self.windows:hide();
 end
+__arena_ArenaScreen.prototype.onCurrentRound = function(self,_self,teamId) 
+end
 __arena_ArenaScreen.prototype.onCurrentTurn = function(self,_self,teamId) 
   if (teamId == _self.controller:teamId()) then 
     _G.msg.post(__arena_ArenaScreenRes.solid, __defold_GoMessages.disable);
@@ -1379,10 +1386,42 @@ __arena_ArenaScreen.prototype.onCurrentTurn = function(self,_self,teamId)
     _G.msg.post(__arena_ArenaScreenRes.solid, __defold_GoMessages.enable);
   end;
 end
+__arena_ArenaScreen.prototype.onTurnTimeLeft = function(self,_self,left,total) 
+  _G.msg.post(__arena_ArenaScreenRes.gui, __arena_ArenaScreenGuiMessages.time_left, _hx_o({__fields__={left=true,total=true},left=left,total=total}));
+end
 
 __arena_ArenaScreen.prototype.__class__ =  __arena_ArenaScreen
 __arena_ArenaScreen.__super__ = __defold_support_Script
 setmetatable(__arena_ArenaScreen.prototype,{__index=__defold_support_Script.prototype})
+
+__arena_ArenaScreenGuiMessages.new = {}
+__arena_ArenaScreenGuiMessages.__name__ = true
+
+__arena_ArenaScreenGui.new = function() 
+  local self = _hx_new(__arena_ArenaScreenGui.prototype)
+  __arena_ArenaScreenGui.super(self)
+  return self
+end
+__arena_ArenaScreenGui.super = function(self) 
+  __defold_support_GuiScript.super(self);
+end
+__arena_ArenaScreenGui.__name__ = true
+__arena_ArenaScreenGui.prototype = _hx_e();
+__arena_ArenaScreenGui.prototype.init = function(self,_self) 
+  _self.timerText = _G.gui.get_node(__arena_ArenaScreenGuiRes.timerText);
+end
+__arena_ArenaScreenGui.prototype.on_message = function(self,_self,message_id,message,sender) 
+  if (message_id == __arena_ArenaScreenGuiMessages.time_left) then 
+    _G.gui.set_text(_self.timerText, Std.string(message.left));
+  end;
+end
+
+__arena_ArenaScreenGui.prototype.__class__ =  __arena_ArenaScreenGui
+__arena_ArenaScreenGui.__super__ = __defold_support_GuiScript
+setmetatable(__arena_ArenaScreenGui.prototype,{__index=__defold_support_GuiScript.prototype})
+
+__arena_ArenaScreenGuiRes.new = {}
+__arena_ArenaScreenGuiRes.__name__ = true
 
 __arena_ArenaScreenRes.new = {}
 __arena_ArenaScreenRes.__name__ = true
@@ -1510,6 +1549,9 @@ __arena_stage_Arena.prototype._requestForUpdateState= nil;
 __arena_stage_Arena.prototype._self= nil;
 __arena_stage_Arena.prototype._listener= nil;
 __arena_stage_Arena.prototype._controller= nil;
+__arena_stage_Arena.prototype._roundTime= nil;
+__arena_stage_Arena.prototype._roundStart= nil;
+__arena_stage_Arena.prototype._lastTimeLeft= nil;
 __arena_stage_Arena.prototype.getId = function(self) 
   local tmp = (function() 
   local _hx_obj = self._stage;
@@ -1536,6 +1578,7 @@ __arena_stage_Arena.prototype.update = function(self,dt)
   if (not self._lockForUpdate and (self._cellsLocks == 0)) then 
     self:handleInput();
   end;
+  self:handleTimeLeft();
   self:handleGenerateBlocks();
   self:handleEmptyCells();
   if ((self._requestForUpdateState and not self._lockForUpdate) and (self._cellsLocks == 0)) then 
@@ -1558,6 +1601,15 @@ __arena_stage_Arena.prototype.handleInput = function(self)
   elseif (tmp) == 4 then 
     self:touchCellInternal(_g[2], _g[3]);
   elseif (tmp) == 5 then 
+    local _g1 = _g[2];
+    local _g = _g[3];
+    self._roundTime = _g;
+    self._roundStart = _G.os.clock();
+    self._lastTimeLeft = _g;
+    self._listener:onCurrentRound(self._self, _g1);
+    self._listener:onCurrentTurn(self._self, _g1);
+    self._listener:onTurnTimeLeft(self._self, _g, _g);
+  elseif (tmp) == 6 then 
     self._listener:onCurrentTurn(self._self, _g[2]); end;
 end
 __arena_stage_Arena.prototype.spawnBlock = function(self,x,y,kind,reason) 
@@ -1665,6 +1717,20 @@ __arena_stage_Arena.prototype.handleMatch = function(self,x,y,score)
     self:spawnBlock(x, y, self:peekRandom(__arena_stage_Arena.Rockets), 1);
   end;
 end
+__arena_stage_Arena.prototype.handleTimeLeft = function(self) 
+  if (self._lastTimeLeft == nil) then 
+    do return end;
+  end;
+  local timeLeft = self._roundTime - Std.int(_G.os.clock() - self._roundStart);
+  if (timeLeft >= 0) then 
+    if (timeLeft ~= self._lastTimeLeft) then 
+      self._lastTimeLeft = timeLeft;
+      self._listener:onTurnTimeLeft(self._self, timeLeft, self._roundTime);
+    end;
+  else
+    self._controller:timeOut();
+  end;
+end
 __arena_stage_Arena.prototype.handleGenerateBlocks = function(self) 
   local size = self._stage.size;
   local top = size - 1;
@@ -1729,7 +1795,7 @@ __arena_stage_ArenaConst.__name__ = true
 __arena_stage_ArenaConst.tileCenter = function(x,y) 
   do return _G.vmath.vector3((x * 92) + 46., (y * 92) + 46., 0) end;
 end
-_hxClasses["arena.stage.Input"] = { __ename__ = true, __constructs__ = _hx_tab_array({[0]="None","Connected","Disconnected","InGame","Touch","CurrentTurn"},6)}
+_hxClasses["arena.stage.Input"] = { __ename__ = true, __constructs__ = _hx_tab_array({[0]="None","Connected","Disconnected","InGame","Touch","CurrentRound","CurrentTurn"},7)}
 __arena_stage_Input = _hxClasses["arena.stage.Input"];
 __arena_stage_Input.None = _hx_tab_array({[0]="None",0,__enum__ = __arena_stage_Input},2)
 
@@ -1739,7 +1805,8 @@ __arena_stage_Input.Disconnected = _hx_tab_array({[0]="Disconnected",2,__enum__ 
 
 __arena_stage_Input.InGame = function(rounds,turnsInRount) local _x = _hx_tab_array({[0]="InGame",3,rounds,turnsInRount,__enum__=__arena_stage_Input}, 4); return _x; end 
 __arena_stage_Input.Touch = function(x,y) local _x = _hx_tab_array({[0]="Touch",4,x,y,__enum__=__arena_stage_Input}, 4); return _x; end 
-__arena_stage_Input.CurrentTurn = function(teamId) local _x = _hx_tab_array({[0]="CurrentTurn",5,teamId,__enum__=__arena_stage_Input}, 3); return _x; end 
+__arena_stage_Input.CurrentRound = function(teamId,turnTime) local _x = _hx_tab_array({[0]="CurrentRound",5,teamId,turnTime,__enum__=__arena_stage_Input}, 4); return _x; end 
+__arena_stage_Input.CurrentTurn = function(teamId) local _x = _hx_tab_array({[0]="CurrentTurn",6,teamId,__enum__=__arena_stage_Input}, 3); return _x; end 
 
 __arena_stage_ArenaController.new = {}
 __arena_stage_ArenaController.__name__ = true
@@ -1748,6 +1815,7 @@ __arena_stage_ArenaController.prototype.inGame= nil;
 __arena_stage_ArenaController.prototype.teamId= nil;
 __arena_stage_ArenaController.prototype.myTurn= nil;
 __arena_stage_ArenaController.prototype.touch= nil;
+__arena_stage_ArenaController.prototype.timeOut= nil;
 __arena_stage_ArenaController.prototype.readInput= nil;
 __arena_stage_ArenaController.prototype.sendHash= nil;
 
@@ -1762,7 +1830,7 @@ __arena_stage_Common.super = function(self)
   self._inputQueue = Array.new();
   self._inputQueue:push(__arena_stage_Input.Connected);
   self._inputQueue:push(__arena_stage_Input.InGame(0, 0));
-  self._inputQueue:push(__arena_stage_Input.CurrentTurn(1));
+  self._inputQueue:push(__arena_stage_Input.CurrentRound(1, 15));
 end
 __arena_stage_Common.__name__ = true
 __arena_stage_Common.__interfaces__ = {__arena_stage_ArenaController}
@@ -1779,6 +1847,9 @@ __arena_stage_Common.prototype.myTurn = function(self)
 end
 __arena_stage_Common.prototype.touch = function(self,x,y) 
   self._inputQueue:push(__arena_stage_Input.CurrentTurn(1));
+end
+__arena_stage_Common.prototype.timeOut = function(self) 
+  self._inputQueue:push(__arena_stage_Input.CurrentRound(1, 15));
 end
 __arena_stage_Common.prototype.readInput = function(self) 
   if (self._inputQueue.length ~= 0) then 
@@ -1841,6 +1912,10 @@ __arena_stage_ArenaControllerWS.prototype.touch = function(self,x,y)
   self._activeTeamId = 0;
   self:send("touch", _hx_o({__fields__={x=true,y=true},x=x,y=y}));
 end
+__arena_stage_ArenaControllerWS.prototype.timeOut = function(self) 
+  self._activeTeamId = 0;
+  self:send("timeOut", _hx_o({__fields__={teamId=true},teamId=self._currentTeamId}));
+end
 __arena_stage_ArenaControllerWS.prototype.readInput = function(self) 
   if (self._inputQueue.length ~= 0) then 
     do return self._inputQueue:shift() end;
@@ -1856,9 +1931,13 @@ __arena_stage_ArenaControllerWS.prototype.send = function(self,command,data)
 end
 __arena_stage_ArenaControllerWS.prototype.handleMessage = function(self,data) 
   local _g = Reflect.getProperty(data, "command");
-  if (_g) == "currentTurn" then 
+  if (_g) == "currentRound" then 
     self._currentTeamId = Reflect.getProperty(data, "teamId");
     self._activeTeamId = self._currentTeamId;
+    local turnTime = Reflect.getProperty(data, "turnTime");
+    self._inputQueue:push(__arena_stage_Input.CurrentRound(self._currentTeamId, turnTime));
+  elseif (_g) == "currentTurn" then 
+    self._activeTeamId = Reflect.getProperty(data, "teamId");
     self._inputQueue:push(__arena_stage_Input.CurrentTurn(self._currentTeamId));
   elseif (_g) == "startGame" then 
     self._inGame = true;
@@ -1970,6 +2049,13 @@ __defold_support_Init.init = function(exports)
   end;
   exports.arena_ArenaLobbyWindow_on_input = function(_self,action_id,action) 
     do return script:on_input(_self, action_id, action) end;
+  end;
+  local script = __arena_ArenaScreenGui.new();
+  exports.arena_ArenaScreenGui_init = function(_self) 
+    script:init(_self);
+  end;
+  exports.arena_ArenaScreenGui_on_message = function(_self,message_id,message,sender) 
+    script:on_message(_self, message_id, message, sender);
   end;
   local script = __arena_ArenaScreen.new();
   exports.arena_ArenaScreen_init = function(_self) 
@@ -3059,6 +3145,10 @@ local _hx_static_init = function()
   
   __arena_ArenaLobbyWindowRes.label = "label";
   
+  __arena_ArenaScreenGuiMessages.time_left = _G.hash("arena_screen_gui_time_left");
+  
+  __arena_ArenaScreenGuiRes.timerText = "timerText";
+  
   __arena_ArenaScreenRes.arena = _G.msg.url("arena:/arena");
   
   __arena_ArenaScreenRes.arena_block_factory = _G.msg.url("arena:/arena#block_factory");
@@ -3077,7 +3167,7 @@ local _hx_static_init = function()
   
   __arena_BlockViewRes.sprite = "#sprite";
   
-  __arena_stage_Arena.Colors = _hx_tab_array({[0]=1, 2, 3, 4, 5, 6}, 6);
+  __arena_stage_Arena.Colors = _hx_tab_array({[0]=1, 2, 3, 4}, 4);
   
   __arena_stage_Arena.Rockets = _hx_tab_array({[0]=8, 7}, 2);
   

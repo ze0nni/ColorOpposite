@@ -21,5 +21,6 @@ type touchCommand struct {
 
 type currentTurnCommand struct {
 	command
-	TeamId int `json:"teamId"`
+	TeamId   int `json:"teamId"`
+	TurnTime int `json:"turnTime"`
 }
