@@ -19,8 +19,13 @@ type touchCommand struct {
 	Y int `json:"y"`
 }
 
-type currentTurnCommand struct {
+type currentRoundCommand struct {
 	command
 	TeamId   int `json:"teamId"`
 	TurnTime int `json:"turnTime"`
+}
+
+type currentTurnCommand struct {
+	command
+	TeamId int `json:"teamId"`
 }

@@ -11,9 +11,8 @@ const TurnTime = 15
 func newRoom(left *player, right *player) *room {
 	left.turns = RountTurns
 	return &room{
-		left:          left,
-		right:         right,
-		currentPlayer: left,
+		left:  left,
+		right: right,
 	}
 }
 
@@ -132,27 +131,45 @@ func (r *room) performCommands() error {
 		right.Apply(r, r.right)
 
 		if left.Name() == "hash" {
-			if r.currentPlayer.turns == 0 {
-				r.currentPlayer = r.otherPlayer(r.currentPlayer)
+			if r.currentPlayer == nil || r.currentPlayer.turns == 0 {
+				if r.currentPlayer != nil {
+					r.currentPlayer = r.otherPlayer(r.currentPlayer)
+				} else {
+					r.currentPlayer = r.left
+				}
 				r.currentPlayer.turns = RountTurns
 				if r.currentPlayer == r.left {
 					r.round += 1
 				}
-			}
+				var currentRoundCmd currentRoundCommand
+				currentRoundCmd.Cmd = "currentRound"
+				currentRoundCmd.TeamId = r.currentPlayer.teamId
+				currentRoundCmd.TurnTime = TurnTime
 
-			var currentTurnCmd currentTurnCommand
-			currentTurnCmd.Cmd = "currentTurn"
-			currentTurnCmd.TeamId = r.currentPlayer.teamId
-			currentTurnCmd.TurnTime = TurnTime
+				err := r.left.conn.WriteJSON(&currentRoundCmd)
+				if err != nil {
+					return err
+				}
 
-			err := r.left.conn.WriteJSON(&currentTurnCmd)
-			if err != nil {
-				return err
-			}
+				err = r.right.conn.WriteJSON(&currentRoundCmd)
+				if err != nil {
+					return err
+				}
 
-			err = r.right.conn.WriteJSON(&currentTurnCmd)
-			if err != nil {
-				return err
+			} else {
+				var currentTurnCmd currentTurnCommand
+				currentTurnCmd.Cmd = "currentTurn"
+				currentTurnCmd.TeamId = r.currentPlayer.teamId
+
+				err := r.left.conn.WriteJSON(&currentTurnCmd)
+				if err != nil {
+					return err
+				}
+
+				err = r.right.conn.WriteJSON(&currentTurnCmd)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
