@@ -68,9 +68,7 @@ class ArenaControllerWS implements ArenaController {
 
 	public function timeOut() {
 		_activeTeamId = 0;
-		send("timeOut", {
-			"teamId": _currentTeamId
-		});
+		send("timeout");
     }
 
 	public function readInput():Input {
@@ -91,11 +89,13 @@ class ArenaControllerWS implements ArenaController {
 		Websocket.disconnect(_conn);
     }
 
-	function send(command: String, data: Dynamic) {
+	function send(command: String, data: Dynamic = null) {
 		Websocket.send(_conn, Json.stringify({
 			command: command,
 		}));
-		Websocket.send(_conn, Json.stringify(data));
+		if (data != null) {
+			Websocket.send(_conn, Json.stringify(data));
+		}
 	}
 
 	function handleMessage(data: Dynamic) {

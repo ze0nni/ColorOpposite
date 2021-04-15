@@ -16,5 +16,7 @@ type player struct {
 	score  int
 	turns  int
 
+	timeout bool
+
 	queue []clientCommand
 }

@@ -1373,7 +1373,7 @@ __arena_ArenaScreen.prototype.onConnected = function(self,_self)
   _G.msg.post(_self.windows:show("lobby"), __arena_ArenaLobbyWindowMessages.connected);
 end
 __arena_ArenaScreen.prototype.onDisconnected = function(self,_self) 
-  _G.msg.post(_self.windows:show("lobby"), __arena_ArenaLobbyWindowMessages.disconnected);
+  __meta_MetaScreen.Enter();
 end
 __arena_ArenaScreen.prototype.onInGame = function(self,_self,rounds,turnsInRount) 
   _self.windows:hide();
@@ -1553,6 +1553,7 @@ __arena_stage_Arena.prototype._requestForUpdateState= nil;
 __arena_stage_Arena.prototype._self= nil;
 __arena_stage_Arena.prototype._listener= nil;
 __arena_stage_Arena.prototype._controller= nil;
+__arena_stage_Arena.prototype._timeoutHappened= nil;
 __arena_stage_Arena.prototype._roundTime= nil;
 __arena_stage_Arena.prototype._roundStart= nil;
 __arena_stage_Arena.prototype._lastTimeLeft= nil;
@@ -1610,6 +1611,7 @@ __arena_stage_Arena.prototype.handleInput = function(self)
     self._roundTime = _g;
     self._roundStart = _G.os.clock();
     self._lastTimeLeft = _g;
+    self._timeoutHappened = false;
     self._listener:onCurrentRound(self._self, _g1);
     self._listener:onCurrentTurn(self._self, _g1);
     self._listener:onTurnTimeLeft(self._self, _g, _g);
@@ -1734,7 +1736,10 @@ __arena_stage_Arena.prototype.handleTimeLeft = function(self)
       self._listener:onTurnTimeLeft(self._self, timeLeft, self._roundTime);
     end;
   else
-    self._controller:timeOut();
+    if (not self._timeoutHappened) then 
+      self._timeoutHappened = true;
+      self._controller:timeOut();
+    end;
   end;
 end
 __arena_stage_Arena.prototype.handleGenerateBlocks = function(self) 
@@ -1921,7 +1926,7 @@ __arena_stage_ArenaControllerWS.prototype.touch = function(self,x,y)
 end
 __arena_stage_ArenaControllerWS.prototype.timeOut = function(self) 
   self._activeTeamId = 0;
-  self:send("timeOut", _hx_o({__fields__={teamId=true},teamId=self._currentTeamId}));
+  self:send("timeout");
 end
 __arena_stage_ArenaControllerWS.prototype.readInput = function(self) 
   if (self._inputQueue.length ~= 0) then 
@@ -1934,7 +1939,9 @@ __arena_stage_ArenaControllerWS.prototype.sendHash = function(self,turn,hash)
 end
 __arena_stage_ArenaControllerWS.prototype.send = function(self,command,data) 
   websocket.send(self._conn, __haxe_Json.stringify(_hx_o({__fields__={command=true},command=command})));
-  websocket.send(self._conn, __haxe_Json.stringify(data));
+  if (data ~= nil) then 
+    websocket.send(self._conn, __haxe_Json.stringify(data));
+  end;
 end
 __arena_stage_ArenaControllerWS.prototype.handleMessage = function(self,data) 
   local _g = Reflect.getProperty(data, "command");

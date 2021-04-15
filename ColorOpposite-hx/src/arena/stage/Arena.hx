@@ -34,6 +34,7 @@ class Arena<TSelf> {
     var _listener: ArenaListener<TSelf>;
     var _controller: ArenaController;
 
+    var _timeoutHappened: Bool;
     var _roundTime: Int;
     var _roundStart: Float;
     var _lastTimeLeft: Null<Int>;
@@ -121,6 +122,7 @@ class Arena<TSelf> {
                 _roundTime = roundTime;
                 _roundStart = Os.clock();
                 _lastTimeLeft = roundTime;
+                _timeoutHappened = false;
                 _listener.onCurrentRound(_self, teamId);
                 _listener.onCurrentTurn(_self, teamId);
                 _listener.onTurnTimeLeft(_self, roundTime, roundTime);
@@ -265,7 +267,10 @@ class Arena<TSelf> {
                 _listener.onTurnTimeLeft(_self, timeLeft, _roundTime);
             }
         } else {
-            _controller.timeOut();
+            if (!_timeoutHappened) {
+                _timeoutHappened = true;
+                _controller.timeOut();
+            }
         }
     }
 

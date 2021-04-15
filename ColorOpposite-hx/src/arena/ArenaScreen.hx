@@ -144,7 +144,8 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
     }
 
     public function onDisconnected(self: ArenaScreenData): Void {
-        Msg.post(self.windows.show(WindowLobby), ArenaLobbyWindowMessages.disconnected);
+        //Msg.post(self.windows.show(WindowLobby), ArenaLobbyWindowMessages.disconnected);
+        MetaScreen.Enter();
     }
 
     public function onInGame(self: ArenaScreenData, rounds: Int, turnsInRount: Int): Void {
