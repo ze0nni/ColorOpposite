@@ -33,11 +33,7 @@ class ArenaControllerWS implements ArenaController {
 			}
 		});
     }
-
-    public function seed(): Int {
-        return 0;
-    }
-
+	
     public function teamId(): Int {
         return _teamId;
     }

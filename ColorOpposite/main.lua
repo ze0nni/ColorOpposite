@@ -1842,6 +1842,7 @@ __arena_stage_Common.new = function()
   return self
 end
 __arena_stage_Common.super = function(self) 
+  self._inGame = false;
   self._inputQueue = Array.new();
   self._inputQueue:push(__arena_stage_Input.Connected);
   self._inputQueue:push(__arena_stage_Input.InGame(0, 0, 0));
@@ -1851,8 +1852,9 @@ __arena_stage_Common.__name__ = true
 __arena_stage_Common.__interfaces__ = {__arena_stage_ArenaController}
 __arena_stage_Common.prototype = _hx_e();
 __arena_stage_Common.prototype._inputQueue= nil;
+__arena_stage_Common.prototype._inGame= nil;
 __arena_stage_Common.prototype.inGame = function(self) 
-  do return true end
+  do return self._inGame end
 end
 __arena_stage_Common.prototype.teamId = function(self) 
   do return 1 end
@@ -1868,7 +1870,13 @@ __arena_stage_Common.prototype.timeOut = function(self)
 end
 __arena_stage_Common.prototype.readInput = function(self) 
   if (self._inputQueue.length ~= 0) then 
-    do return self._inputQueue:shift() end;
+    local msg = self._inputQueue:shift();
+    if (msg ~= nil) then 
+      if (msg[1] == 3) then 
+        self._inGame = true;
+      end;
+    end;
+    do return msg end;
   end;
   do return __arena_stage_Input.None end
 end

@@ -14,7 +14,6 @@ enum Input {
 interface ArenaController {
     function connected(): Bool;
     function inGame(): Bool;
-    function seed(): Int;
     function teamId(): Int;
     function currentTeamId(): Int;
     function myTurn(): Bool;
@@ -29,6 +28,7 @@ interface ArenaController {
 class Common implements ArenaController {
     
     var _inputQueue = new Array<Input>();
+    var _inGame: Bool = false;
 
     public function new() {
         _inputQueue.push(Connected);
@@ -41,11 +41,7 @@ class Common implements ArenaController {
 	}
 
     public function inGame(): Bool {
-        return true;
-    }
-
-    public function seed(): Int {
-        return 0;
+        return _inGame;
     }
 
     public function teamId(): Int {
@@ -70,7 +66,16 @@ class Common implements ArenaController {
 
 	public function readInput():Input {
 		if (_inputQueue.length != 0) {
-			return _inputQueue.shift();
+			var msg =  _inputQueue.shift();
+
+            switch (msg) {
+                case InGame(seed, rounds, turnsInRount):
+                    _inGame = true;
+                default:
+                    //
+            }
+
+            return msg;
 		}
 
 		return None;
