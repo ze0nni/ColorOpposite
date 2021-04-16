@@ -107,7 +107,7 @@ class ArenaControllerWS implements ArenaController {
 				var rounds: Int = Reflect.getProperty(data, "rounds");
 				var turnsForRound: Int = Reflect.getProperty(data, "turnsForRound");
 				_currentTeamId = 1;
-				_inputQueue.push(InGame(rounds, turnsForRound));
+				_inputQueue.push(InGame(_seed, rounds, turnsForRound));
 
 			case "touch":
 				var x: Int = Reflect.getProperty(data, "x");

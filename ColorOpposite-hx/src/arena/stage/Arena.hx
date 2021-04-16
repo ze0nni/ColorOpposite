@@ -34,6 +34,8 @@ class Arena<TSelf> {
     var _listener: ArenaListener<TSelf>;
     var _controller: ArenaController;
 
+    var _random: Random;
+
     var _timeoutHappened: Bool;
     var _roundTime: Int;
     var _roundStart: Float;
@@ -68,7 +70,7 @@ class Arena<TSelf> {
     }
 
     public function randomIntRange(min: Int, max: Int): Int {
-        return Std.int(Math.random(min, max));
+        return _random.next(min, max);
     }
 
     public function peekRandom<T>(array: Array<T>): T {
@@ -112,7 +114,8 @@ class Arena<TSelf> {
             case Disconnected:
                 _listener.onDisconnected(_self);
 
-            case InGame(rounds, turnsInRount):
+            case InGame(seed, rounds, turnsInRount):
+                _random = new Random(seed);
                 _listener.onInGame(_self, rounds, turnsInRount);
 
             case Touch(x, y):

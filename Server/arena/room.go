@@ -37,7 +37,7 @@ func (r *room) Play() (RoomResult, error) {
 
 	startGameCmd := &startGame{}
 	startGameCmd.Cmd = "startGame"
-	startGameCmd.Seed = 0
+	startGameCmd.Seed = int(time.Now().Unix())
 	startGameCmd.Rounds = Rounds
 	startGameCmd.TurnsForRound = RountTurns
 

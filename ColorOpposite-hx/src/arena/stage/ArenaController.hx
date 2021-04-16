@@ -4,7 +4,7 @@ enum Input {
     None;
     Connected;
     Disconnected;
-    InGame(rounds: Int, turnsInRount: Int);
+    InGame(seed: Int, rounds: Int, turnsInRount: Int);
     Touch(x: Int, y: Int);
     CurrentRound(teamId: Int, turnTime: Int);
     CurrentTurn(teamId: Int);
@@ -32,7 +32,7 @@ class Common implements ArenaController {
 
     public function new() {
         _inputQueue.push(Connected);
-        _inputQueue.push(InGame(0, 0));
+        _inputQueue.push(InGame(0, 0, 0));
         _inputQueue.push(CurrentRound(1, 15));
     }
 

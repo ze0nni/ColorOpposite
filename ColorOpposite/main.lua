@@ -233,6 +233,7 @@ __arena_stage_ArenaController = _hx_e()
 __arena_stage_Common = _hx_e()
 __arena_stage_ArenaControllerWS = _hx_e()
 __arena_stage_CellsExt = _hx_e()
+__common_Random = _hx_e()
 __defold_CollectionproxyMessages = _hx_e()
 __defold_GoMessages = _hx_e()
 __meta_MetaScreen = _hx_e()
@@ -1553,6 +1554,7 @@ __arena_stage_Arena.prototype._requestForUpdateState= nil;
 __arena_stage_Arena.prototype._self= nil;
 __arena_stage_Arena.prototype._listener= nil;
 __arena_stage_Arena.prototype._controller= nil;
+__arena_stage_Arena.prototype._random= nil;
 __arena_stage_Arena.prototype._timeoutHappened= nil;
 __arena_stage_Arena.prototype._roundTime= nil;
 __arena_stage_Arena.prototype._roundStart= nil;
@@ -1567,7 +1569,7 @@ __arena_stage_Arena.prototype.getId = function(self)
   do return tmp end
 end
 __arena_stage_Arena.prototype.randomIntRange = function(self,min,max) 
-  do return Std.int(_G.math.random(min, max)) end
+  do return self._random:next(min, max) end
 end
 __arena_stage_Arena.prototype.peekRandom = function(self,array) 
   if (array.length == 0) then 
@@ -1602,7 +1604,8 @@ __arena_stage_Arena.prototype.handleInput = function(self)
   elseif (tmp) == 2 then 
     self._listener:onDisconnected(self._self);
   elseif (tmp) == 3 then 
-    self._listener:onInGame(self._self, _g[2], _g[3]);
+    self._random = __common_Random.new(_g[2]);
+    self._listener:onInGame(self._self, _g[3], _g[4]);
   elseif (tmp) == 4 then 
     self:touchCellInternal(_g[2], _g[3]);
   elseif (tmp) == 5 then 
@@ -1814,7 +1817,7 @@ __arena_stage_Input.Connected = _hx_tab_array({[0]="Connected",1,__enum__ = __ar
 
 __arena_stage_Input.Disconnected = _hx_tab_array({[0]="Disconnected",2,__enum__ = __arena_stage_Input},2)
 
-__arena_stage_Input.InGame = function(rounds,turnsInRount) local _x = _hx_tab_array({[0]="InGame",3,rounds,turnsInRount,__enum__=__arena_stage_Input}, 4); return _x; end 
+__arena_stage_Input.InGame = function(seed,rounds,turnsInRount) local _x = _hx_tab_array({[0]="InGame",3,seed,rounds,turnsInRount,__enum__=__arena_stage_Input}, 5); return _x; end 
 __arena_stage_Input.Touch = function(x,y) local _x = _hx_tab_array({[0]="Touch",4,x,y,__enum__=__arena_stage_Input}, 4); return _x; end 
 __arena_stage_Input.CurrentRound = function(teamId,turnTime) local _x = _hx_tab_array({[0]="CurrentRound",5,teamId,turnTime,__enum__=__arena_stage_Input}, 4); return _x; end 
 __arena_stage_Input.CurrentTurn = function(teamId) local _x = _hx_tab_array({[0]="CurrentTurn",6,teamId,__enum__=__arena_stage_Input}, 3); return _x; end 
@@ -1841,7 +1844,7 @@ end
 __arena_stage_Common.super = function(self) 
   self._inputQueue = Array.new();
   self._inputQueue:push(__arena_stage_Input.Connected);
-  self._inputQueue:push(__arena_stage_Input.InGame(0, 0));
+  self._inputQueue:push(__arena_stage_Input.InGame(0, 0, 0));
   self._inputQueue:push(__arena_stage_Input.CurrentRound(1, 15));
 end
 __arena_stage_Common.__name__ = true
@@ -1963,7 +1966,7 @@ __arena_stage_ArenaControllerWS.prototype.handleMessage = function(self,data)
     local rounds = Reflect.getProperty(data, "rounds");
     local turnsForRound = Reflect.getProperty(data, "turnsForRound");
     self._currentTeamId = 1;
-    self._inputQueue:push(__arena_stage_Input.InGame(rounds, turnsForRound));
+    self._inputQueue:push(__arena_stage_Input.InGame(self._seed, rounds, turnsForRound));
   elseif (_g) == "touch" then 
     local x = Reflect.getProperty(data, "x");
     local y = Reflect.getProperty(data, "y");
@@ -1989,6 +1992,24 @@ __arena_stage_CellsExt.Empty = function(size)
   end;
   do return result end;
 end
+
+__common_Random.new = function(seed) 
+  local self = _hx_new(__common_Random.prototype)
+  __common_Random.super(self,seed)
+  return self
+end
+__common_Random.super = function(self,seed) 
+  self._seed = seed;
+end
+__common_Random.__name__ = true
+__common_Random.prototype = _hx_e();
+__common_Random.prototype._seed= nil;
+__common_Random.prototype.next = function(self,min,max) 
+  self._seed = _G.math.fmod(((45 * self._seed) + 21), 67);
+  do return min + (_G.math.fmod(self._seed, ((max - min) + 1))) end
+end
+
+__common_Random.prototype.__class__ =  __common_Random
 
 __defold_CollectionproxyMessages.new = {}
 __defold_CollectionproxyMessages.__name__ = true
