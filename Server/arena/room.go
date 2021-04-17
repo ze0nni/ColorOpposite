@@ -110,6 +110,18 @@ func (r *room) readPlayerInput(p *player, input chan<- struct{}, errorCh chan<- 
 			}
 			touchCmd.Cmd = "touch"
 			r.otherPlayer(p).conn.WriteJSON(touchCmd)
+
+		case "score":
+			var scoreCmd scoreCommand
+			err = p.conn.ReadJSON(&scoreCmd)
+			if err != nil {
+				errorCh <- err
+				return
+			}
+			if scoreCmd.TeamId == p.teamId {
+				p.score = scoreCmd.Score
+			}
+
 		case "timeout":
 			p.timeout = true
 

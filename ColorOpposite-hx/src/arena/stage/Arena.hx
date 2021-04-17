@@ -13,7 +13,13 @@ class Arena<TSelf> {
             {
                 identity: 0,
                 size: 8,
-                cells: arena.stage.Cells.CellsExt.Empty(8)
+                cells: arena.stage.Cells.CellsExt.Empty(8),
+                player1: {
+                    score: 0,
+                },
+                player2: {
+                    score: 0,
+                }
             },
             self,
             listener,
@@ -138,6 +144,28 @@ class Arena<TSelf> {
         }
     }
 
+    function player(index: Int): Player {
+        switch (index) {
+            case 1: 
+                return _stage.player1;
+            case 2: 
+                return _stage.player2;
+        }
+        throw "Wrong index";
+    }
+
+    function me(): Player {
+        if (_controller.teamId() == 1)
+            return _stage.player1;
+        return _stage.player2;
+    }
+
+    function oponent(): Player {
+        if (_controller.teamId() == 1)
+            return _stage.player2;
+        return _stage.player1;
+    }
+
     function spawnBlock(x: Int, y: Int, kind: BlockKind, reason: BlockSpawnReason) {
         if (_stage.cells[y][x].block != null) {
             _listener.onBlockDespawned(_self, _stage.cells[y][x].block.id);
@@ -253,6 +281,15 @@ class Arena<TSelf> {
     }
 
     function handleMatch(x: Int, y: Int, score: Int) {
+        var p = player(_controller.currentTeamId());
+
+        p.score += score;
+        _listener.onAppendScore(_self, p.score, _controller.currentTeamId() == _controller.teamId());
+        
+        if (_controller.currentTeamId() == _controller.teamId()) {
+            _controller.setScore(_controller.currentTeamId(), p.score);
+        }
+
         if (score == 5) {
             spawnBlock(x, y, peekRandom(Rockets), Swap);
         }

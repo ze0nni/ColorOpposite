@@ -62,6 +62,13 @@ class ArenaControllerWS implements ArenaController {
 		});
 	}
 
+	public function setScore(teamId: Int, score: Int): Void {
+		send("score", {
+			teamId: teamId,
+			score: score
+		});
+	}
+
 	public function timeOut() {
 		_activeTeamId = 0;
 		send("timeout");

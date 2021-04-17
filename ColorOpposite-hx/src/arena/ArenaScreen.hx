@@ -135,6 +135,10 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
 
     }
 
+    public function onAppendScore(self: ArenaScreenData, newScore: Int, isMyScore: Bool): Void {
+        Msg.post(ArenaScreenRes.gui, ArenaScreenGuiMessages.append_score, { score: newScore, isMy: isMyScore});
+    }
+
     public function onMatched(self: ArenaScreenData, x: Int, y: Int, score: Int): Void {
         
     }

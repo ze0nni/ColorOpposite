@@ -18,6 +18,7 @@ interface ArenaController {
     function currentTeamId(): Int;
     function myTurn(): Bool;
     function touch(x: Int, y: Int): Void;
+    function setScore(teamId: Int, score: Int): Void;
     function timeOut(): Void;
     function readInput(): Input;
     function sendHash(turn: Int, hash: Int): Void;
@@ -58,6 +59,10 @@ class Common implements ArenaController {
 
 	public function touch(x:Int, y:Int) {
         _inputQueue.push(CurrentTurn(1));
+    }
+
+    public function setScore(teamId: Int, score: Int): Void {
+
     }
 
     public function timeOut() {

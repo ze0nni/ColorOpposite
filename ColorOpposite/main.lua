@@ -1261,6 +1261,7 @@ __arena_stage_ArenaListener.prototype.onResize= nil;
 __arena_stage_ArenaListener.prototype.onBlockSpawned= nil;
 __arena_stage_ArenaListener.prototype.onBlockDespawned= nil;
 __arena_stage_ArenaListener.prototype.onBlockMoved= nil;
+__arena_stage_ArenaListener.prototype.onAppendScore= nil;
 __arena_stage_ArenaListener.prototype.onMatched= nil;
 __arena_stage_ArenaListener.prototype.onConnected= nil;
 __arena_stage_ArenaListener.prototype.onDisconnected= nil;
@@ -1368,6 +1369,9 @@ __arena_ArenaScreen.prototype.onBlockMoved = function(self,_self,id,x,y)
     _G.msg.post(blockId, __arena_BlockViewMessages.move, _hx_o({__fields__={x=true,y=true},x=x,y=y}));
   end;
 end
+__arena_ArenaScreen.prototype.onAppendScore = function(self,_self,newScore,isMyScore) 
+  _G.msg.post(__arena_ArenaScreenRes.gui, __arena_ArenaScreenGuiMessages.append_score, _hx_o({__fields__={score=true,isMy=true},score=newScore,isMy=isMyScore}));
+end
 __arena_ArenaScreen.prototype.onMatched = function(self,_self,x,y,score) 
 end
 __arena_ArenaScreen.prototype.onConnected = function(self,_self) 
@@ -1415,12 +1419,19 @@ __arena_ArenaScreenGui.prototype = _hx_e();
 __arena_ArenaScreenGui.prototype.init = function(self,_self) 
   _self.timerText = _G.gui.get_node(__arena_ArenaScreenGuiRes.timerText);
   _self.timerFill = _G.gui.get_node(__arena_ArenaScreenGuiRes.timer_fill);
+  _self.playerScore = _G.gui.get_node(__arena_ArenaScreenGuiRes.playerScore);
+  _self.oponentScore = _G.gui.get_node(__arena_ArenaScreenGuiRes.oponentScore);
 end
 __arena_ArenaScreenGui.prototype.on_message = function(self,_self,message_id,message,sender) 
-  if (message_id == __arena_ArenaScreenGuiMessages.time_left) then 
+  if (message_id) == __arena_ArenaScreenGuiMessages.append_score then 
+    if (message.isMy) then 
+      _G.gui.set_text(_self.playerScore, Std.string(message.score));
+    else
+      _G.gui.set_text(_self.oponentScore, Std.string(message.score));
+    end;
+  elseif (message_id) == __arena_ArenaScreenGuiMessages.time_left then 
     _G.gui.set_text(_self.timerText, Std.string(message.left));
-    _G.gui.animate(_self.timerFill, "size.x", 800 * (message.left / message.total), _G.gui.EASING_LINEAR, 1);
-  end;
+    _G.gui.animate(_self.timerFill, "size.x", 800 * (message.left / message.total), _G.gui.EASING_LINEAR, 1); end;
 end
 
 __arena_ArenaScreenGui.prototype.__class__ =  __arena_ArenaScreenGui
@@ -1544,7 +1555,7 @@ __arena_stage_Arena.super = function(self,stage,_self,listener,controller)
 end
 __arena_stage_Arena.__name__ = true
 __arena_stage_Arena.Empty = function(_self,listener,controller) 
-  do return __arena_stage_Arena.new(_hx_o({__fields__={identity=true,size=true,cells=true},identity=0,size=8,cells=__arena_stage_CellsExt.Empty(8)}), _self, listener, controller) end;
+  do return __arena_stage_Arena.new(_hx_o({__fields__={identity=true,size=true,cells=true,player1=true,player2=true},identity=0,size=8,cells=__arena_stage_CellsExt.Empty(8),player1=_hx_o({__fields__={score=true},score=0}),player2=_hx_o({__fields__={score=true},score=0})}), _self, listener, controller) end;
 end
 __arena_stage_Arena.prototype = _hx_e();
 __arena_stage_Arena.prototype._stage= nil;
@@ -1624,6 +1635,13 @@ __arena_stage_Arena.prototype.handleInput = function(self)
     self._listener:onCurrentTurn(self._self, _g[2]);
   elseif (tmp) == 7 then 
     self._listener:onRoomResult(self._self, _g[2]); end;
+end
+__arena_stage_Arena.prototype.player = function(self,index) 
+  if (index) == 1 then 
+    do return self._stage.player1 end;
+  elseif (index) == 2 then 
+    do return self._stage.player2 end; end;
+  _G.error(__haxe_Exception.thrown("Wrong index"),0);
 end
 __arena_stage_Arena.prototype.spawnBlock = function(self,x,y,kind,reason) 
   if (self._stage.cells[y][x].block ~= nil) then 
@@ -1726,6 +1744,12 @@ __arena_stage_Arena.prototype.touchCellInternal = function(self,x,y)
   self:handleMatch(x, y, score);
 end
 __arena_stage_Arena.prototype.handleMatch = function(self,x,y,score) 
+  local p = self:player(self._controller:currentTeamId());
+  p.score = p.score + score;
+  self._listener:onAppendScore(self._self, p.score, self._controller:currentTeamId() == self._controller:teamId());
+  if (self._controller:currentTeamId() == self._controller:teamId()) then 
+    self._controller:setScore(self._controller:currentTeamId(), p.score);
+  end;
   if (score == 5) then 
     self:spawnBlock(x, y, self:peekRandom(__arena_stage_Arena.Rockets), 1);
   end;
@@ -1830,8 +1854,10 @@ __arena_stage_ArenaController.__name__ = true
 __arena_stage_ArenaController.prototype = _hx_e();
 __arena_stage_ArenaController.prototype.inGame= nil;
 __arena_stage_ArenaController.prototype.teamId= nil;
+__arena_stage_ArenaController.prototype.currentTeamId= nil;
 __arena_stage_ArenaController.prototype.myTurn= nil;
 __arena_stage_ArenaController.prototype.touch= nil;
+__arena_stage_ArenaController.prototype.setScore= nil;
 __arena_stage_ArenaController.prototype.timeOut= nil;
 __arena_stage_ArenaController.prototype.readInput= nil;
 __arena_stage_ArenaController.prototype.sendHash= nil;
@@ -1861,11 +1887,16 @@ end
 __arena_stage_Common.prototype.teamId = function(self) 
   do return 1 end
 end
+__arena_stage_Common.prototype.currentTeamId = function(self) 
+  do return 1 end
+end
 __arena_stage_Common.prototype.myTurn = function(self) 
   do return true end
 end
 __arena_stage_Common.prototype.touch = function(self,x,y) 
   self._inputQueue:push(__arena_stage_Input.CurrentTurn(1));
+end
+__arena_stage_Common.prototype.setScore = function(self,teamId,score) 
 end
 __arena_stage_Common.prototype.timeOut = function(self) 
   self._inputQueue:push(__arena_stage_Input.CurrentRound(1, 15));
@@ -1927,6 +1958,9 @@ __arena_stage_ArenaControllerWS.prototype._inputQueue= nil;
 __arena_stage_ArenaControllerWS.prototype.teamId = function(self) 
   do return self._teamId end
 end
+__arena_stage_ArenaControllerWS.prototype.currentTeamId = function(self) 
+  do return self._currentTeamId end
+end
 __arena_stage_ArenaControllerWS.prototype.inGame = function(self) 
   do return self._inGame end
 end
@@ -1936,6 +1970,9 @@ end
 __arena_stage_ArenaControllerWS.prototype.touch = function(self,x,y) 
   self._activeTeamId = 0;
   self:send("touch", _hx_o({__fields__={x=true,y=true},x=x,y=y}));
+end
+__arena_stage_ArenaControllerWS.prototype.setScore = function(self,teamId,score) 
+  self:send("score", _hx_o({__fields__={teamId=true,score=true},teamId=teamId,score=score}));
 end
 __arena_stage_ArenaControllerWS.prototype.timeOut = function(self) 
   self._activeTeamId = 0;
@@ -3195,9 +3232,15 @@ local _hx_static_init = function()
   
   __arena_ArenaScreenGuiMessages.time_left = _G.hash("arena_screen_gui_time_left");
   
+  __arena_ArenaScreenGuiMessages.append_score = _G.hash("arena_screen_gui_append_score");
+  
   __arena_ArenaScreenGuiRes.timerText = "timerText";
   
   __arena_ArenaScreenGuiRes.timer_fill = "timer_fill";
+  
+  __arena_ArenaScreenGuiRes.playerScore = "playerScore";
+  
+  __arena_ArenaScreenGuiRes.oponentScore = "oponentScore";
   
   __arena_ArenaScreenRes.arena = _G.msg.url("arena:/arena");
   
