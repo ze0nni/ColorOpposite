@@ -666,6 +666,7 @@ end
 Main.prototype = _hx_e();
 Main.prototype.use_fixed_fit_projection= nil;
 Main.prototype.init = function(self,_self) 
+  require("randomlua");
   Main.DISPLAY_WIDTH = Std.parseInt(_G.sys.get_config("display.width"));
   Main.DISPLAY_HEIGHT = Std.parseInt(_G.sys.get_config("display.height"));
   _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
@@ -2046,14 +2047,13 @@ __common_Random.new = function(seed)
   return self
 end
 __common_Random.super = function(self,seed) 
-  self._seed = seed;
+  self._generator = _G.mwc(seed, "mvc");
 end
 __common_Random.__name__ = true
 __common_Random.prototype = _hx_e();
-__common_Random.prototype._seed= nil;
+__common_Random.prototype._generator= nil;
 __common_Random.prototype.next = function(self,min,max) 
-  self._seed = _G.math.fmod(((45 * self._seed) + 21), 67);
-  do return min + (_G.math.fmod(self._seed, ((max - min) + 1))) end
+  do return self._generator:random(min, max) end
 end
 
 __common_Random.prototype.__class__ =  __common_Random

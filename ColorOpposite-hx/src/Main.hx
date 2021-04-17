@@ -43,6 +43,8 @@ class Main extends defold.support.Script<MainData> {
 	}
 
 	override function init(self:MainData) {
+		untyped require("randomlua");
+
 		DISPLAY_WIDTH = Std.parseInt(Sys.get_config("display.width"));
 		DISPLAY_HEIGHT = Std.parseInt(Sys.get_config("display.height"));
 
