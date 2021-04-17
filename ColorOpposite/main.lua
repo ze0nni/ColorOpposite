@@ -1414,10 +1414,12 @@ __arena_ArenaScreenGui.__name__ = true
 __arena_ArenaScreenGui.prototype = _hx_e();
 __arena_ArenaScreenGui.prototype.init = function(self,_self) 
   _self.timerText = _G.gui.get_node(__arena_ArenaScreenGuiRes.timerText);
+  _self.timerFill = _G.gui.get_node(__arena_ArenaScreenGuiRes.timer_fill);
 end
 __arena_ArenaScreenGui.prototype.on_message = function(self,_self,message_id,message,sender) 
   if (message_id == __arena_ArenaScreenGuiMessages.time_left) then 
     _G.gui.set_text(_self.timerText, Std.string(message.left));
+    _G.gui.animate(_self.timerFill, "size.x", 800 * (message.left / message.total), _G.gui.EASING_LINEAR, 1);
   end;
 end
 
@@ -3194,6 +3196,8 @@ local _hx_static_init = function()
   __arena_ArenaScreenGuiMessages.time_left = _G.hash("arena_screen_gui_time_left");
   
   __arena_ArenaScreenGuiRes.timerText = "timerText";
+  
+  __arena_ArenaScreenGuiRes.timer_fill = "timer_fill";
   
   __arena_ArenaScreenRes.arena = _G.msg.url("arena:/arena");
   

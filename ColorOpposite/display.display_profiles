@@ -2,6 +2,6 @@ profiles {
   name: "Portrait"
   qualifiers {
     width: 810
-    height: 1280
+    height: 1080
   }
 }
