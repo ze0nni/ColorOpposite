@@ -13,8 +13,9 @@ typedef MetaScreenGuiData = {
 class MetaScreenGui extends GuiScript<MetaScreenGuiData> {
     override function init(self:MetaScreenGuiData) {
         Msg.post(".", GoMessages.acquire_input_focus);
+        Gui.set_render_order(MetaScreen.GUI_SCREEN);
 
-        self.gui = new GUI(InputRes.touch, TextRoot.MetaScreen, 1);
+        self.gui = new GUI(InputRes.touch, TextRoot.MetaScreenText, 1);
 
         self.gui
             .buttonUpDown("startSingle", true)

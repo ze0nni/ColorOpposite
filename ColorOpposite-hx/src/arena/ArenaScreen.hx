@@ -148,8 +148,7 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
     }
 
     public function onDisconnected(self: ArenaScreenData): Void {
-        //Msg.post(self.windows.show(WindowLobby), ArenaLobbyWindowMessages.disconnected);
-        MetaScreen.Enter();
+        MetaScreen.EnterDisconnected();
     }
 
     public function onInGame(self: ArenaScreenData, rounds: Int, turnsInRount: Int): Void {
@@ -171,7 +170,13 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
         Msg.post(ArenaScreenRes.gui, ArenaScreenGuiMessages.time_left, {left: left, total: total});
     }
 
-    public function onRoomResult(self: ArenaScreenData, result: RoomResult): Void {
-        MetaScreen.Enter();
+    public function onRoomResult(self: ArenaScreenData, winnder: Int, result: RoomResult): Void {
+        
+        MetaScreen.EnterResult(
+            self.controller.teamId() == winnder,
+            result,
+            self.arena.me().score,
+            self.arena.oponent().score
+        );
     }
 }

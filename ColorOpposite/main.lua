@@ -237,6 +237,7 @@ __common_Random = _hx_e()
 __defold_CollectionproxyMessages = _hx_e()
 __defold_GoMessages = _hx_e()
 __meta_MetaScreen = _hx_e()
+__meta_MetaResultMessageGui = _hx_e()
 __meta_MetaScreenGui = _hx_e()
 __defold_support_Init = _hx_e()
 __gui_Button = _hx_e()
@@ -261,6 +262,9 @@ __haxe_iterators_ArrayKeyValueIterator = _hx_e()
 __lua_Boot = _hx_e()
 __lua_UserData = _hx_e()
 __lua_Thread = _hx_e()
+__meta_MetaResultMessageGuiMessages = _hx_e()
+__meta_Enter = _hx_e()
+__meta_MetaScreenRes = _hx_e()
 
 local _hx_bind, _hx_bit, _hx_staticToInstance, _hx_funcToField, _hx_maxn, _hx_print, _hx_apply_self, _hx_box_mr, _hx_bit_clamp, _hx_table, _hx_bit_raw
 local _hx_pcall_default = {};
@@ -671,7 +675,7 @@ Main.prototype.init = function(self,_self)
   Main.DISPLAY_HEIGHT = Std.parseInt(_G.sys.get_config("display.height"));
   _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
   _G.msg.post("@render:", self.use_fixed_fit_projection, _hx_o({__fields__={near=true,far=true},near=-1,far=1}));
-  __meta_MetaScreen.Enter();
+  __meta_MetaScreen.EnterCommon();
 end
 Main.prototype.on_message = function(self,_self,message_id,message,sender) 
   if (message_id) == ScreenMessages.goto_screen then 
@@ -1211,6 +1215,8 @@ __defold_support_GuiScript.super = function(self)
 end
 __defold_support_GuiScript.__name__ = true
 __defold_support_GuiScript.prototype = _hx_e();
+__defold_support_GuiScript.prototype.final_ = function(self,_self) 
+end
 
 __defold_support_GuiScript.prototype.__class__ =  __defold_support_GuiScript
 
@@ -1379,7 +1385,7 @@ __arena_ArenaScreen.prototype.onConnected = function(self,_self)
   _G.msg.post(_self.windows:show("lobby"), __arena_ArenaLobbyWindowMessages.connected);
 end
 __arena_ArenaScreen.prototype.onDisconnected = function(self,_self) 
-  __meta_MetaScreen.Enter();
+  __meta_MetaScreen.EnterDisconnected();
 end
 __arena_ArenaScreen.prototype.onInGame = function(self,_self,rounds,turnsInRount) 
   _self.windows:hide();
@@ -1396,8 +1402,8 @@ end
 __arena_ArenaScreen.prototype.onTurnTimeLeft = function(self,_self,left,total) 
   _G.msg.post(__arena_ArenaScreenRes.gui, __arena_ArenaScreenGuiMessages.time_left, _hx_o({__fields__={left=true,total=true},left=left,total=total}));
 end
-__arena_ArenaScreen.prototype.onRoomResult = function(self,_self,result) 
-  __meta_MetaScreen.Enter();
+__arena_ArenaScreen.prototype.onRoomResult = function(self,_self,winnder,result) 
+  __meta_MetaScreen.EnterResult(_self.controller:teamId() == winnder, result, _self.arena:me().score, _self.arena:oponent().score);
 end
 
 __arena_ArenaScreen.prototype.__class__ =  __arena_ArenaScreen
@@ -1635,7 +1641,7 @@ __arena_stage_Arena.prototype.handleInput = function(self)
   elseif (tmp) == 6 then 
     self._listener:onCurrentTurn(self._self, _g[2]);
   elseif (tmp) == 7 then 
-    self._listener:onRoomResult(self._self, _g[2]); end;
+    self._listener:onRoomResult(self._self, _g[2], _g[3]); end;
 end
 __arena_stage_Arena.prototype.player = function(self,index) 
   if (index) == 1 then 
@@ -1643,6 +1649,18 @@ __arena_stage_Arena.prototype.player = function(self,index)
   elseif (index) == 2 then 
     do return self._stage.player2 end; end;
   _G.error(__haxe_Exception.thrown("Wrong index"),0);
+end
+__arena_stage_Arena.prototype.me = function(self) 
+  if (self._controller:teamId() == 1) then 
+    do return self._stage.player1 end;
+  end;
+  do return self._stage.player2 end
+end
+__arena_stage_Arena.prototype.oponent = function(self) 
+  if (self._controller:teamId() == 1) then 
+    do return self._stage.player2 end;
+  end;
+  do return self._stage.player1 end
 end
 __arena_stage_Arena.prototype.spawnBlock = function(self,x,y,kind,reason) 
   if (self._stage.cells[y][x].block ~= nil) then 
@@ -1848,7 +1866,7 @@ __arena_stage_Input.InGame = function(seed,rounds,turnsInRount) local _x = _hx_t
 __arena_stage_Input.Touch = function(x,y) local _x = _hx_tab_array({[0]="Touch",4,x,y,__enum__=__arena_stage_Input}, 4); return _x; end 
 __arena_stage_Input.CurrentRound = function(teamId,turnTime) local _x = _hx_tab_array({[0]="CurrentRound",5,teamId,turnTime,__enum__=__arena_stage_Input}, 4); return _x; end 
 __arena_stage_Input.CurrentTurn = function(teamId) local _x = _hx_tab_array({[0]="CurrentTurn",6,teamId,__enum__=__arena_stage_Input}, 3); return _x; end 
-__arena_stage_Input.RoomResult = function(result) local _x = _hx_tab_array({[0]="RoomResult",7,result,__enum__=__arena_stage_Input}, 3); return _x; end 
+__arena_stage_Input.RoomResult = function(winnder,result) local _x = _hx_tab_array({[0]="RoomResult",7,winnder,result,__enum__=__arena_stage_Input}, 4); return _x; end 
 
 __arena_stage_ArenaController.new = {}
 __arena_stage_ArenaController.__name__ = true
@@ -1871,6 +1889,8 @@ __arena_stage_Common.new = function()
   return self
 end
 __arena_stage_Common.super = function(self) 
+  self._round = 1;
+  self._turn = 0;
   self._inGame = false;
   self._inputQueue = Array.new();
   self._inputQueue:push(__arena_stage_Input.Connected);
@@ -1882,6 +1902,8 @@ __arena_stage_Common.__interfaces__ = {__arena_stage_ArenaController}
 __arena_stage_Common.prototype = _hx_e();
 __arena_stage_Common.prototype._inputQueue= nil;
 __arena_stage_Common.prototype._inGame= nil;
+__arena_stage_Common.prototype._turn= nil;
+__arena_stage_Common.prototype._round= nil;
 __arena_stage_Common.prototype.inGame = function(self) 
   do return self._inGame end
 end
@@ -1895,7 +1917,18 @@ __arena_stage_Common.prototype.myTurn = function(self)
   do return true end
 end
 __arena_stage_Common.prototype.touch = function(self,x,y) 
-  self._inputQueue:push(__arena_stage_Input.CurrentTurn(1));
+  self._turn = self._turn + 1;
+  if (self._turn < 3) then 
+    self._inputQueue:push(__arena_stage_Input.CurrentTurn(1));
+    do return end;
+  end;
+  self._turn = 0;
+  self._round = self._round + 1;
+  if (self._round < 4) then 
+    self._inputQueue:push(__arena_stage_Input.CurrentRound(1, 15));
+  else
+    self._inputQueue:push(__arena_stage_Input.RoomResult(1, 1));
+  end;
 end
 __arena_stage_Common.prototype.setScore = function(self,teamId,score) 
 end
@@ -2005,8 +2038,9 @@ __arena_stage_ArenaControllerWS.prototype.handleMessage = function(self,data)
     self._activeTeamId = Reflect.getProperty(data, "teamId");
     self._inputQueue:push(__arena_stage_Input.CurrentTurn(self._currentTeamId));
   elseif (_g) == "roomResult" then 
+    local winner = Reflect.getProperty(data, "winner");
     local result = Reflect.getProperty(data, "result");
-    self._inputQueue:push(__arena_stage_Input.RoomResult(result));
+    self._inputQueue:push(__arena_stage_Input.RoomResult(winner, result));
   elseif (_g) == "startGame" then 
     self._inGame = true;
     self._seed = Reflect.getProperty(data, "seed");
@@ -2073,14 +2107,79 @@ __meta_MetaScreen.super = function(self)
   __defold_support_Script.super(self);
 end
 __meta_MetaScreen.__name__ = true
-__meta_MetaScreen.Enter = function() 
+__meta_MetaScreen.EnterCommon = function() 
+  __meta_MetaScreen.Enter = __meta_Enter.Common;
   Main.gotoScreen(MainRes.screen_collection_proxy_meta);
 end
+__meta_MetaScreen.EnterDisconnected = function() 
+  __meta_MetaScreen.Enter = __meta_Enter.Disconnected;
+  Main.gotoScreen(MainRes.screen_collection_proxy_meta);
+end
+__meta_MetaScreen.EnterResult = function(winnder,result,score,oponentScore) 
+  __meta_MetaScreen.Enter = __meta_Enter.Result(winnder, result, score, oponentScore);
+  Main.gotoScreen(MainRes.screen_collection_proxy_meta);
+end
+__meta_MetaScreen.HideWindows = function() 
+  __meta_MetaScreen.Instance.windows:hide();
+end
 __meta_MetaScreen.prototype = _hx_e();
+__meta_MetaScreen.prototype.init = function(self,_self) 
+  _self.windows = __gui_Windows.new(__meta_MetaScreenRes.gui);
+  _self.windows:register("result", __meta_MetaScreenRes.resultMessage);
+  __meta_MetaScreen.Instance = _self;
+  local _g = __meta_MetaScreen.Enter;
+  local tmp = _g[1];
+  if (tmp) == 0 then 
+  elseif (tmp) == 1 then 
+  elseif (tmp) == 2 then 
+    self:showResultWindow(_self, _g[2], _g[3], _g[4], _g[5]); end;
+end
+__meta_MetaScreen.prototype.final_ = function(self,_self) 
+  __meta_MetaScreen.Instance = nil;
+end
+__meta_MetaScreen.prototype.showResultWindow = function(self,_self,winnder,result,score,oponentScore) 
+  _G.msg.post(_self.windows:show("result"), __meta_MetaResultMessageGuiMessages.setup, _hx_o({__fields__={winnder=true,result=true,score=true,oponentScore=true},winnder=winnder,result=result,score=score,oponentScore=oponentScore}));
+end
 
 __meta_MetaScreen.prototype.__class__ =  __meta_MetaScreen
 __meta_MetaScreen.__super__ = __defold_support_Script
 setmetatable(__meta_MetaScreen.prototype,{__index=__defold_support_Script.prototype})
+
+__meta_MetaResultMessageGui.new = function() 
+  local self = _hx_new(__meta_MetaResultMessageGui.prototype)
+  __meta_MetaResultMessageGui.super(self)
+  return self
+end
+__meta_MetaResultMessageGui.super = function(self) 
+  __defold_support_GuiScript.super(self);
+end
+__meta_MetaResultMessageGui.__name__ = true
+__meta_MetaResultMessageGui.prototype = _hx_e();
+__meta_MetaResultMessageGui.prototype.init = function(self,_self) 
+  _G.gui.set_render_order(1);
+  _self.gui = __gui_GUI.new(InputRes.touch, "ResultWindow", 1);
+  _self.gui:buttonUpDown("success", true):OnClickHandle(function() 
+    __meta_MetaScreen.HideWindows();
+  end);
+end
+__meta_MetaResultMessageGui.prototype.final_ = function(self,_self) 
+  __defold_support_GuiScript.prototype.final_(self,_self);
+end
+__meta_MetaResultMessageGui.prototype.on_message = function(self,_self,message_id,message,sender) 
+  if (message_id) == __defold_GoMessages.disable then 
+    _G.msg.post(".", __defold_GoMessages.release_input_focus);
+  elseif (message_id) == __defold_GoMessages.enable then 
+    _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
+  elseif (message_id) == __meta_MetaResultMessageGuiMessages.setup then  end;
+end
+__meta_MetaResultMessageGui.prototype.on_input = function(self,_self,action_id,action) 
+  _self.gui:on_input(action_id, action);
+  do return true end
+end
+
+__meta_MetaResultMessageGui.prototype.__class__ =  __meta_MetaResultMessageGui
+__meta_MetaResultMessageGui.__super__ = __defold_support_GuiScript
+setmetatable(__meta_MetaResultMessageGui.prototype,{__index=__defold_support_GuiScript.prototype})
 
 __meta_MetaScreenGui.new = function() 
   local self = _hx_new(__meta_MetaScreenGui.prototype)
@@ -2094,6 +2193,7 @@ __meta_MetaScreenGui.__name__ = true
 __meta_MetaScreenGui.prototype = _hx_e();
 __meta_MetaScreenGui.prototype.init = function(self,_self) 
   _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
+  _G.gui.set_render_order(0);
   _self.gui = __gui_GUI.new(InputRes.touch, "MetaScreen", 1);
   _self.gui:buttonUpDown("startSingle", true):OnClickHandle(function() 
     __arena_ArenaScreen.EnterCommon();
@@ -2118,6 +2218,13 @@ __defold_support_Init.init = function(exports)
   exports.arena_BlockView_on_message = function(_self,message_id,message,sender) 
     script:on_message(_self, message_id, message, sender);
   end;
+  local script = __meta_MetaScreen.new();
+  exports.meta_MetaScreen_init = function(_self) 
+    script:init(_self);
+  end;
+  exports.meta_MetaScreen_final_ = function(_self) 
+    script:final_(_self);
+  end;
   local script = Main.new();
   exports.Main_init = function(_self) 
     script:init(_self);
@@ -2141,6 +2248,19 @@ __defold_support_Init.init = function(exports)
   end;
   exports.arena_ArenaScreenGui_on_message = function(_self,message_id,message,sender) 
     script:on_message(_self, message_id, message, sender);
+  end;
+  local script = __meta_MetaResultMessageGui.new();
+  exports.meta_MetaResultMessageGui_init = function(_self) 
+    script:init(_self);
+  end;
+  exports.meta_MetaResultMessageGui_final_ = function(_self) 
+    script:final_(_self);
+  end;
+  exports.meta_MetaResultMessageGui_on_message = function(_self,message_id,message,sender) 
+    script:on_message(_self, message_id, message, sender);
+  end;
+  exports.meta_MetaResultMessageGui_on_input = function(_self,action_id,action) 
+    do return script:on_input(_self, action_id, action) end;
   end;
   local script = __arena_ArenaScreen.new();
   exports.arena_ArenaScreen_init = function(_self) 
@@ -3162,6 +3282,19 @@ __lua_UserData.__name__ = true
 
 __lua_Thread.new = {}
 __lua_Thread.__name__ = true
+
+__meta_MetaResultMessageGuiMessages.new = {}
+__meta_MetaResultMessageGuiMessages.__name__ = true
+_hxClasses["meta.Enter"] = { __ename__ = true, __constructs__ = _hx_tab_array({[0]="Common","Disconnected","Result"},3)}
+__meta_Enter = _hxClasses["meta.Enter"];
+__meta_Enter.Common = _hx_tab_array({[0]="Common",0,__enum__ = __meta_Enter},2)
+
+__meta_Enter.Disconnected = _hx_tab_array({[0]="Disconnected",1,__enum__ = __meta_Enter},2)
+
+__meta_Enter.Result = function(winnder,result,score,oponentScore) local _x = _hx_tab_array({[0]="Result",2,winnder,result,score,oponentScore,__enum__=__meta_Enter}, 6); return _x; end 
+
+__meta_MetaScreenRes.new = {}
+__meta_MetaScreenRes.__name__ = true
 if _hx_bit_raw then
     _hx_bit_clamp = function(v)
     if v <= 2147483647 and v >= -2147483648 then
@@ -3287,6 +3420,12 @@ local _hx_static_init = function()
   __haxe_ds_IntMap.tnull = ({});
   
   __haxe_ds_StringMap.tnull = ({});
+  
+  __meta_MetaResultMessageGuiMessages.setup = _G.hash("meta_result_message_gui_setup");
+  
+  __meta_MetaScreenRes.gui = _G.msg.url("meta:/gui");
+  
+  __meta_MetaScreenRes.resultMessage = _G.msg.url("meta:/resultMessage");
   
   
 end

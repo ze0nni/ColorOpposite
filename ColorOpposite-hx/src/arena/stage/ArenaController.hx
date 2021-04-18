@@ -1,5 +1,4 @@
 package arena.stage;
-
 enum Input {
     None;
     Connected;
@@ -8,7 +7,7 @@ enum Input {
     Touch(x: Int, y: Int);
     CurrentRound(teamId: Int, turnTime: Int);
     CurrentTurn(teamId: Int);
-    RoomResult(result: RoomResult);
+    RoomResult(winnder: Int, result: RoomResult);
 }
 
 interface ArenaController {
@@ -30,6 +29,9 @@ class Common implements ArenaController {
     
     var _inputQueue = new Array<Input>();
     var _inGame: Bool = false;
+    var _turn = 0;
+    var _round = 1;
+
 
     public function new() {
         _inputQueue.push(Connected);
@@ -58,7 +60,18 @@ class Common implements ArenaController {
 	}
 
 	public function touch(x:Int, y:Int) {
-        _inputQueue.push(CurrentTurn(1));
+        _turn++;
+        if (_turn < 3) {
+            _inputQueue.push(CurrentTurn(1));
+            return;
+        }
+        _turn = 0;
+        _round++;
+        if (_round < 4) {
+            _inputQueue.push(CurrentRound(1, 15));
+        } else {
+            _inputQueue.push(RoomResult(1, RoomResultDone));
+        }
     }
 
     public function setScore(teamId: Int, score: Int): Void {

@@ -26,6 +26,7 @@ type scoreCommand struct {
 
 type currentRoundCommand struct {
 	command
+	Round    int `json:"round"`
 	TeamId   int `json:"teamId"`
 	TurnTime int `json:"turnTime"`
 }
@@ -37,5 +38,6 @@ type currentTurnCommand struct {
 
 type roomResultCommand struct {
 	command
+	Winner int        `json:"winner"`
 	Result RoomResult `json:"result"`
 }

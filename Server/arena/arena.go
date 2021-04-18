@@ -20,13 +20,11 @@ func NewArena(handler RoomDoneHandler) *Arena {
 type RoomResult int
 
 const RoomResultDraw = RoomResult(0)
-const RoomResultLeft = RoomResult(1)
-const RoomResultRight = RoomResult(2)
-const RoomResultLeftAuto = RoomResult(3)
-const RoomResultRightAuto = RoomResult(4)
-const RoomResultFoul = RoomResult(5)
+const RoomResultDone = RoomResult(1)
+const RoomResultAuto = RoomResult(2)
+const RoomResultFoul = RoomResult(3)
 
-type RoomDoneHandler func(*shared.Player, *shared.Player, RoomResult)
+type RoomDoneHandler func(*shared.Player, *shared.Player, int, RoomResult)
 
 type Arena struct {
 	roomsWG *sync.WaitGroup
@@ -64,19 +62,21 @@ func (a *Arena) CreateRoom(
 	defer a.roomsWG.Done()
 	defer left.Close()
 	defer right.Close()
-	result, err := room.Play()
+	result, winner, err := room.Play()
 	if err != nil {
 		log.Printf("Room error %s", err)
 	}
 
 	var roomResultCmd roomResultCommand
 	roomResultCmd.Cmd = "roomResult"
+	roomResultCmd.Winner = winner
 	roomResultCmd.Result = result
 
 	left.WriteJSON(&roomResultCmd)
 	right.WriteJSON(&roomResultCmd)
 
-	a.handler(leftPlayer, rightPlayer, result)
+	a.handler(leftPlayer, rightPlayer, winner, result)
 
-	time.Sleep(time.Second)
+	time.Sleep(time.Second / 2)
+	time.Sleep(time.Second / 2)
 }

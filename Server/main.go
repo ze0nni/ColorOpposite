@@ -27,7 +27,7 @@ func onMatch(left *websocket.Conn, leftPlayer *shared.Player, right *websocket.C
 	go Arena.CreateRoom(left, leftPlayer, right, rightPlayer)
 }
 
-func roomResult(left *shared.Player, right *shared.Player, result arena.RoomResult) {
+func roomResult(left *shared.Player, right *shared.Player, winner int, result arena.RoomResult) {
 
 }
 

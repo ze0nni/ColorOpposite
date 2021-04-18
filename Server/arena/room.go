@@ -8,6 +8,7 @@ import (
 const Rounds = 3
 const RountTurns = 3
 const TurnTime = 15
+const RoundsCount = 3
 
 func newRoom(left *player, right *player) *room {
 	left.turns = RountTurns
@@ -33,7 +34,7 @@ func (r *room) otherPlayer(this *player) *player {
 	}
 }
 
-func (r *room) Play() (RoomResult, error) {
+func (r *room) Play() (RoomResult, int, error) {
 
 	startGameCmd := &startGame{}
 	startGameCmd.Cmd = "startGame"
@@ -44,13 +45,13 @@ func (r *room) Play() (RoomResult, error) {
 	startGameCmd.TeamId = 1
 	err := r.left.conn.WriteJSON(&startGameCmd)
 	if err != nil {
-		return RoomResultFoul, err
+		return RoomResultFoul, 2, err
 	}
 
 	startGameCmd.TeamId = 2
 	err = r.right.conn.WriteJSON(&startGameCmd)
 	if err != nil {
-		return RoomResultFoul, err
+		return RoomResultFoul, 1, err
 	}
 	cmdChan := make(chan struct{})
 	errorCh := make(chan error)
@@ -65,19 +66,22 @@ func (r *room) Play() (RoomResult, error) {
 		case <-cmdChan:
 			err = r.performCommands()
 			if err != nil {
-				return RoomResultFoul, err
-			}
-		case <-ticker.C:
-			result, ok, err := r.checkEndGame()
-			if err != nil {
-				return result, err
-			}
-			if ok {
-				return result, nil
+				return RoomResultFoul, 0, err
 			}
 
+		case <-ticker.C:
+			//
+
 		case err = <-errorCh:
-			return RoomResultFoul, err
+			return RoomResultFoul, 0, err
+		}
+
+		result, teamId, ok, err := r.checkEndGame()
+		if err != nil {
+			return result, 0, err
+		}
+		if ok {
+			return result, teamId, nil
 		}
 	}
 }
@@ -177,6 +181,7 @@ func (r *room) handleEndturn() error {
 		}
 		var currentRoundCmd currentRoundCommand
 		currentRoundCmd.Cmd = "currentRound"
+		currentRoundCmd.Round = r.round
 		currentRoundCmd.TeamId = r.currentPlayer.teamId
 		currentRoundCmd.TurnTime = TurnTime
 
@@ -209,27 +214,38 @@ func (r *room) handleEndturn() error {
 	return nil
 }
 
-func (r *room) checkEndGame() (RoomResult, bool, error) {
+func (r *room) checkEndGame() (RoomResult, int, bool, error) {
+	if r.round > RoundsCount {
+		if r.left.score == r.right.score {
+			return RoomResultDraw, 0, true, nil
+		}
+		if r.left.score > r.right.score {
+			return RoomResultDone, 1, true, nil
+		} else {
+			return RoomResultDone, 2, true, nil
+		}
+	}
+
 	var keepAlive struct {
 		Command string `json:"command"`
 	}
 	keepAlive.Command = "keepAlive"
 
 	if r.left.conn.WriteJSON(&keepAlive) != nil {
-		return RoomResultRightAuto, true, nil
+		return RoomResultAuto, 2, true, nil
 	}
 
 	if r.right.conn.WriteJSON(&keepAlive) != nil {
-		return RoomResultRightAuto, true, nil
+		return RoomResultAuto, 1, true, nil
 	}
 
 	if r.currentPlayer != nil && r.currentPlayer.timeout {
 		r.currentPlayer.turns = 0
 		err := r.handleEndturn()
 		if err != nil {
-			return RoomResultDraw, false, err
+			return RoomResultFoul, 0, false, err
 		}
 	}
 
-	return RoomResultDraw, false, nil
+	return RoomResultDraw, 0, false, nil
 }

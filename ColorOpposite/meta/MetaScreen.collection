@@ -1,10 +1,81 @@
-name: "default"
+name: "meta"
 scale_along_z: 0
 embedded_instances {
   id: "menu"
   data: "components {\n"
   "  id: \"MetaScreenGui\"\n"
   "  component: \"/meta/MetaScreenGui.gui\"\n"
+  "  position {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "  }\n"
+  "  rotation {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "    w: 1.0\n"
+  "  }\n"
+  "}\n"
+  ""
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+embedded_instances {
+  id: "gui"
+  children: "resultMessage"
+  data: "components {\n"
+  "  id: \"MetaScreen\"\n"
+  "  component: \"/scripts/meta/MetaScreen.script\"\n"
+  "  position {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "  }\n"
+  "  rotation {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "    w: 1.0\n"
+  "  }\n"
+  "}\n"
+  ""
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+embedded_instances {
+  id: "resultMessage"
+  data: "components {\n"
+  "  id: \"MetaResultMessage\"\n"
+  "  component: \"/meta/MetaResultMessage.gui\"\n"
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"

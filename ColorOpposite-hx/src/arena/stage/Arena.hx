@@ -139,12 +139,12 @@ class Arena<TSelf> {
             case CurrentTurn(teamId):
                 _listener.onCurrentTurn(_self, teamId);
 
-            case RoomResult(result):
-                _listener.onRoomResult(_self, result);
+            case RoomResult(winnder, result):
+                _listener.onRoomResult(_self, winnder, result);
         }
     }
 
-    function player(index: Int): Player {
+    public function player(index: Int): Player {
         switch (index) {
             case 1: 
                 return _stage.player1;
@@ -154,13 +154,13 @@ class Arena<TSelf> {
         throw "Wrong index";
     }
 
-    function me(): Player {
+    public function me(): Player {
         if (_controller.teamId() == 1)
             return _stage.player1;
         return _stage.player2;
     }
 
-    function oponent(): Player {
+    public function oponent(): Player {
         if (_controller.teamId() == 1)
             return _stage.player2;
         return _stage.player1;

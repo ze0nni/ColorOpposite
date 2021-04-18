@@ -3,7 +3,8 @@ package gui;
 import model.*;
 
 @:enum abstract TextRoot(String) to String {
-    var MetaScreen: TextRoot = "MetaScreen";
+    var MetaScreenText: TextRoot = "MetaScreen";
+    var ResultWindowText: TextRoot = "ResultWindow";
 }
 
 class TextMap {
@@ -11,7 +12,7 @@ class TextMap {
 
     static public function gui(root: TextRoot, id: String): String {
         switch (root) {
-            case MetaScreen: switch (id) {
+            case MetaScreenText: switch (id) {
                 case "startSingle/text":
                     return "Single";
 

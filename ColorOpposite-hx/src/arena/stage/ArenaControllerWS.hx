@@ -129,8 +129,9 @@ class ArenaControllerWS implements ArenaController {
 				_inputQueue.push(CurrentTurn(_currentTeamId));
 
 			case "roomResult":
+				var winner: Int = Reflect.getProperty(data, "winner");
 				var result: RoomResult = Reflect.getProperty(data, "result");
-				_inputQueue.push(RoomResult(result));
+				_inputQueue.push(RoomResult(winner, result));
 		}
 	}
 }
