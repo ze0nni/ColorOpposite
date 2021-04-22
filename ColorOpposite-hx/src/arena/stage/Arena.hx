@@ -184,11 +184,19 @@ class Arena<TSelf> {
     }
 
     public function lockCell(x: Int, y: Int) {
+        var lastCell = _stage.size - 1;
+        if (x < 0 || y < 0 || x > lastCell || y > lastCell)
+            return;
+
         _cells[y][x].lock++;
         _cellsLocks++;
     }
 
     public function unlockCell(x: Int, y: Int) {
+        var lastCell = _stage.size - 1;
+        if (x < 0 || y < 0 || x > lastCell || y > lastCell)
+            return;
+
         _cells[y][x].lock--;
         _cellsLocks--;
     }
@@ -352,9 +360,7 @@ class Arena<TSelf> {
     function handleCleanCells() {
         if (_cellsToClean.length == 0)
             return;
-
         var hasLocked = false;
-
         var score = 0;
 
         for (i in 0..._cellsToClean.length) {

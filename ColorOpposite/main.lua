@@ -226,7 +226,10 @@ __arena_ArenaScreenRes = _hx_e()
 __arena_BlockViewMessages = _hx_e()
 __arena_BlockView = _hx_e()
 __arena_BlockViewRes = _hx_e()
+__arena_RocketMessages = _hx_e()
+__arena_RocketView = _hx_e()
 __arena_stage_Arena = _hx_e()
+__arena_stage_Layer = _hx_e()
 __arena_stage_ArenaConst = _hx_e()
 __arena_stage_Input = _hx_e()
 __arena_stage_ArenaController = _hx_e()
@@ -250,6 +253,7 @@ __gui_Windows = _hx_e()
 __haxe_IMap = _hx_e()
 __haxe_Exception = _hx_e()
 __haxe_Json = _hx_e()
+__haxe_Log = _hx_e()
 __haxe_NativeStackTrace = _hx_e()
 __haxe_ValueException = _hx_e()
 __haxe_ds_IntMap = _hx_e()
@@ -1476,6 +1480,7 @@ __arena_BlockView.__name__ = true
 __arena_BlockView.prototype = _hx_e();
 __arena_BlockView.prototype.on_message = function(self,_self,message_id,message,sender) 
   if (message_id) == __arena_BlockViewMessages.activate then 
+    self:activate(_self, message.x, message.y);
   elseif (message_id) == __arena_BlockViewMessages.move then 
     local x = message.x;
     local y = message.y;
@@ -1487,14 +1492,15 @@ __arena_BlockView.prototype.on_message = function(self,_self,message_id,message,
     _self.lockedCellX = x;
     _self.lockedCellY = y;
     __arena_ArenaScreen.ArenaInst:lockCell(x, y);
-    _G.go.animate(".", "position", _G.go.PLAYBACK_ONCE_FORWARD, __arena_stage_ArenaConst.tileCenter(message.x, message.y), _G.go.EASING_LINEAR, 0.15, 0, _hx_bind(self,self.move_done));
+    _G.go.animate(".", "position", _G.go.PLAYBACK_ONCE_FORWARD, __arena_stage_ArenaConst.tileCenter(message.x, message.y, __arena_stage_Layer.Board), _G.go.EASING_LINEAR, 0.15, 0, _hx_bind(self,self.move_done));
   elseif (message_id) == __arena_BlockViewMessages.remove then 
     _G.go.delete();
   elseif (message_id) == __arena_BlockViewMessages.setup then 
+    _self.block = _hx_funcToField(message.block);
     self:setSprite(_self, message.block.kind);
     local _g = message.reason;
     if (_g) == 0 then 
-      _G.go.set_position(__arena_stage_ArenaConst.tileCenter(message.block.x, message.block.y + 1));
+      _G.go.set_position(__arena_stage_ArenaConst.tileCenter(message.block.x, message.block.y + 1, __arena_stage_Layer.Board));
       local x = message.block.x;
       local y = message.block.y;
       if (_self.isCellLocked) then 
@@ -1505,9 +1511,9 @@ __arena_BlockView.prototype.on_message = function(self,_self,message_id,message,
       _self.lockedCellX = x;
       _self.lockedCellY = y;
       __arena_ArenaScreen.ArenaInst:lockCell(x, y);
-      _G.go.animate(".", "position", _G.go.PLAYBACK_ONCE_FORWARD, __arena_stage_ArenaConst.tileCenter(message.block.x, message.block.y), _G.go.EASING_LINEAR, 0.15, 0, _hx_bind(self,self.move_done));
+      _G.go.animate(".", "position", _G.go.PLAYBACK_ONCE_FORWARD, __arena_stage_ArenaConst.tileCenter(message.block.x, message.block.y, __arena_stage_Layer.Board), _G.go.EASING_LINEAR, 0.15, 0, _hx_bind(self,self.move_done));
     elseif (_g) == 1 then 
-      _G.go.set_position(__arena_stage_ArenaConst.tileCenter(message.block.x, message.block.y)); end; end;
+      _G.go.set_position(__arena_stage_ArenaConst.tileCenter(message.block.x, message.block.y, __arena_stage_Layer.Board)); end; end;
 end
 __arena_BlockView.prototype.move_done = function(self,_self,_,_1) 
   if (_self.isCellLocked) then 
@@ -1536,6 +1542,23 @@ __arena_BlockView.prototype.setSprite = function(self,_self,kind)
   do return end; end;
   _G.sprite.play_flipbook(__arena_BlockViewRes.sprite, image);
 end
+__arena_BlockView.prototype.activate = function(self,_self,x,y) 
+  if ((_self.block.kind == 7) or (_self.block.kind == 8)) then 
+    local r1 = _G.factory.create(__arena_BlockViewRes.factory_rocket);
+    local r2 = _G.factory.create(__arena_BlockViewRes.factory_rocket);
+    _G.go.set_parent(r1, __arena_ArenaScreenRes.arena);
+    _G.go.set_parent(r2, __arena_ArenaScreenRes.arena);
+    if (_self.block.kind == 8) then 
+      _G.msg.post(r1, __arena_RocketMessages.setup, _hx_o({__fields__={x=true,y=true,dx=true,dy=true},x=x,y=y,dx=-1,dy=0}));
+      _G.msg.post(r2, __arena_RocketMessages.setup, _hx_o({__fields__={x=true,y=true,dx=true,dy=true},x=x,y=y,dx=1,dy=0}));
+    else
+      _G.msg.post(r1, __arena_RocketMessages.setup, _hx_o({__fields__={x=true,y=true,dx=true,dy=true},x=x,y=y,dx=0,dy=-1}));
+      _G.msg.post(r2, __arena_RocketMessages.setup, _hx_o({__fields__={x=true,y=true,dx=true,dy=true},x=x,y=y,dx=0,dy=1}));
+    end;
+  else
+    _G.error(__haxe_Exception.thrown(Std.string("Can't activate ") .. Std.string(_self.block.kind)),0);
+  end;
+end
 
 __arena_BlockView.prototype.__class__ =  __arena_BlockView
 __arena_BlockView.__super__ = __defold_support_Script
@@ -1543,6 +1566,90 @@ setmetatable(__arena_BlockView.prototype,{__index=__defold_support_Script.protot
 
 __arena_BlockViewRes.new = {}
 __arena_BlockViewRes.__name__ = true
+
+__arena_RocketMessages.new = {}
+__arena_RocketMessages.__name__ = true
+
+__arena_RocketView.new = function() 
+  local self = _hx_new(__arena_RocketView.prototype)
+  __arena_RocketView.super(self)
+  return self
+end
+__arena_RocketView.super = function(self) 
+  __defold_support_Script.super(self);
+end
+__arena_RocketView.__name__ = true
+__arena_RocketView.prototype = _hx_e();
+__arena_RocketView.prototype.init = function(self,_self) 
+  _self.cells = _hx_tab_array({}, 0);
+end
+__arena_RocketView.prototype.update = function(self,_self,dt) 
+  local pos = _G.go.get_position();
+  local d = Std.int(_G.math.sqrt(_G.math.pow(pos.x - _self.x, 2) + _G.math.pow(pos.y - _self.y, 2)) / 92);
+  if (d > 8) then 
+    _G.go.delete();
+  end;
+  local _g = 0;
+  local _g1 = Std.int(_G.math.min(8, d));
+  local _hx_continue_1 = false;
+  while (_g < _g1) do repeat 
+    _g = _g + 1;
+    local i = _g - 1;
+    if (_self.cells[i] == nil) then 
+      break;
+    end;
+    local cell = _self.cells[i];
+    _self.cells[i] = nil;
+    __haxe_Log.trace(cell, _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/arena/RocketView.hx",lineNumber=36,className="arena.RocketView",methodName="update"}));
+    __arena_ArenaScreen.ArenaInst:unlockCell(cell.x, cell.y);until true
+    if _hx_continue_1 then 
+    _hx_continue_1 = false;
+    break;
+    end;
+    
+  end;
+end
+__arena_RocketView.prototype.on_message = function(self,_self,message_id,message,sender) 
+  if (message_id == __arena_RocketMessages.setup) then 
+    local pos = __arena_stage_ArenaConst.tileCenter(message.x, message.y, __arena_stage_Layer.OverBoard);
+    _self.x = pos.x;
+    _self.y = pos.y;
+    _G.go.set_position(pos);
+    _G.go.animate(".", "position", _G.go.PLAYBACK_ONCE_FORWARD, __arena_stage_ArenaConst.tileCenter(message.x + (8 * message.dx), message.y + (8 * message.dy), __arena_stage_Layer.OverBoard), _G.go.EASING_INCUBIC, 1);
+    local x = message.x + message.dx;
+    local y = message.y + message.dy;
+    _self.cells:push(_hx_o({__fields__={x=true,y=true},x=x,y=y}));
+    __arena_ArenaScreen.ArenaInst:lockCell(x, y);
+    local x = message.x + (2 * message.dx);
+    local y = message.y + (2 * message.dy);
+    _self.cells:push(_hx_o({__fields__={x=true,y=true},x=x,y=y}));
+    __arena_ArenaScreen.ArenaInst:lockCell(x, y);
+    local x = message.x + (3 * message.dx);
+    local y = message.y + (3 * message.dy);
+    _self.cells:push(_hx_o({__fields__={x=true,y=true},x=x,y=y}));
+    __arena_ArenaScreen.ArenaInst:lockCell(x, y);
+    local x = message.x + (4 * message.dx);
+    local y = message.y + (4 * message.dy);
+    _self.cells:push(_hx_o({__fields__={x=true,y=true},x=x,y=y}));
+    __arena_ArenaScreen.ArenaInst:lockCell(x, y);
+    local x = message.x + (5 * message.dx);
+    local y = message.y + (5 * message.dy);
+    _self.cells:push(_hx_o({__fields__={x=true,y=true},x=x,y=y}));
+    __arena_ArenaScreen.ArenaInst:lockCell(x, y);
+    local x = message.x + (6 * message.dx);
+    local y = message.y + (6 * message.dy);
+    _self.cells:push(_hx_o({__fields__={x=true,y=true},x=x,y=y}));
+    __arena_ArenaScreen.ArenaInst:lockCell(x, y);
+    local x = message.x + (7 * message.dx);
+    local y = message.y + (7 * message.dy);
+    _self.cells:push(_hx_o({__fields__={x=true,y=true},x=x,y=y}));
+    __arena_ArenaScreen.ArenaInst:lockCell(x, y);
+  end;
+end
+
+__arena_RocketView.prototype.__class__ =  __arena_RocketView
+__arena_RocketView.__super__ = __defold_support_Script
+setmetatable(__arena_RocketView.prototype,{__index=__defold_support_Script.prototype})
 
 __arena_stage_Arena.new = function(stage,_self,listener,controller) 
   local self = _hx_new(__arena_stage_Arena.prototype)
@@ -1690,11 +1797,19 @@ __arena_stage_Arena.prototype.spawnBlock = function(self,x,y,kind,reason)
   self._listener:onBlockSpawned(self._self, self._stage.cells[y][x].block, reason);
 end
 __arena_stage_Arena.prototype.lockCell = function(self,x,y) 
+  local lastCell = self._stage.size - 1;
+  if ((((x < 0) or (y < 0)) or (x > lastCell)) or (y > lastCell)) then 
+    do return end;
+  end;
   local fh = self._cells[y][x];
   fh.lock = fh.lock + 1;
   self._cellsLocks = self._cellsLocks + 1;
 end
 __arena_stage_Arena.prototype.unlockCell = function(self,x,y) 
+  local lastCell = self._stage.size - 1;
+  if ((((x < 0) or (y < 0)) or (x > lastCell)) or (y > lastCell)) then 
+    do return end;
+  end;
   local fh = self._cells[y][x];
   fh.lock = fh.lock - 1;
   self._cellsLocks = self._cellsLocks - 1;
@@ -1786,6 +1901,7 @@ __arena_stage_Arena.prototype.touchCellInternal = function(self,x,y)
   self:handleMatch(x, y, score);
 end
 __arena_stage_Arena.prototype.activateRocket = function(self,x,y,rocketCell) 
+  __haxe_Log.trace("ACT", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/arena/stage/Arena.hx",lineNumber=301,className="arena.stage.Arena",methodName="activateRocket"}));
   local rocketBlock = rocketCell.block;
   rocketCell.block = nil;
   self._listener:onPowerupActivated(self._self, x, y, rocketBlock.id);
@@ -1960,11 +2076,27 @@ __arena_stage_Arena.prototype.handleEmptyCells = function(self)
 end
 
 __arena_stage_Arena.prototype.__class__ =  __arena_stage_Arena
+_hxClasses["arena.stage.Layer"] = { __ename__ = true, __constructs__ = _hx_tab_array({[0]="Cell","Board","OverBoard"},3)}
+__arena_stage_Layer = _hxClasses["arena.stage.Layer"];
+__arena_stage_Layer.Cell = _hx_tab_array({[0]="Cell",0,__enum__ = __arena_stage_Layer},2)
+
+__arena_stage_Layer.Board = _hx_tab_array({[0]="Board",1,__enum__ = __arena_stage_Layer},2)
+
+__arena_stage_Layer.OverBoard = _hx_tab_array({[0]="OverBoard",2,__enum__ = __arena_stage_Layer},2)
+
 
 __arena_stage_ArenaConst.new = {}
 __arena_stage_ArenaConst.__name__ = true
-__arena_stage_ArenaConst.tileCenter = function(x,y) 
-  do return _G.vmath.vector3((x * 92) + 46., (y * 92) + 46., 0) end;
+__arena_stage_ArenaConst.tileCenter = function(x,y,layer) 
+  local z;
+  local z1 = layer[1];
+  if (z1) == 0 then 
+    z = -0.5;
+  elseif (z1) == 1 then 
+    z = 0;
+  elseif (z1) == 2 then 
+    z = 0.5; end;
+  do return _G.vmath.vector3((x * 92) + 46., (y * 92) + 46., z) end;
 end
 _hxClasses["arena.stage.Input"] = { __ename__ = true, __constructs__ = _hx_tab_array({[0]="None","Connected","Disconnected","InGame","Touch","CurrentRound","CurrentTurn","RoomResult"},8)}
 __arena_stage_Input = _hxClasses["arena.stage.Input"];
@@ -2394,6 +2526,16 @@ __defold_support_Init.init = function(exports)
   exports.meta_MetaScreenGui_on_input = function(_self,action_id,action) 
     do return script:on_input(_self, action_id, action) end;
   end;
+  local script = __arena_RocketView.new();
+  exports.arena_RocketView_init = function(_self) 
+    script:init(_self);
+  end;
+  exports.arena_RocketView_update = function(_self,dt) 
+    script:update(_self, dt);
+  end;
+  exports.arena_RocketView_on_message = function(_self,message_id,message,sender) 
+    script:on_message(_self, message_id, message, sender);
+  end;
 end
 
 __gui_Button.new = function(up,down) 
@@ -2775,6 +2917,30 @@ __haxe_Json.new = {}
 __haxe_Json.__name__ = true
 __haxe_Json.stringify = function(value,replacer,space) 
   do return __haxe_format_JsonPrinter.print(value, replacer, space) end;
+end
+
+__haxe_Log.new = {}
+__haxe_Log.__name__ = true
+__haxe_Log.formatOutput = function(v,infos) 
+  local str = Std.string(v);
+  if (infos == nil) then 
+    do return str end;
+  end;
+  local pstr = Std.string(Std.string(infos.fileName) .. Std.string(":")) .. Std.string(infos.lineNumber);
+  if (infos.customParams ~= nil) then 
+    local _g = 0;
+    local _g1 = infos.customParams;
+    while (_g < _g1.length) do 
+      local v = _g1[_g];
+      _g = _g + 1;
+      str = Std.string(str) .. Std.string((Std.string(", ") .. Std.string(Std.string(v))));
+    end;
+  end;
+  do return Std.string(Std.string(pstr) .. Std.string(": ")) .. Std.string(str) end;
+end
+__haxe_Log.trace = function(v,infos) 
+  local str = __haxe_Log.formatOutput(v, infos);
+  _hx_print(str);
 end
 
 __haxe_NativeStackTrace.new = {}
@@ -3501,6 +3667,10 @@ local _hx_static_init = function()
   
   __arena_BlockViewRes.sprite = "#sprite";
   
+  __arena_BlockViewRes.factory_rocket = "#factory_rocket";
+  
+  __arena_RocketMessages.setup = _G.hash("rocket_setup");
+  
   __arena_stage_Arena.Colors = _hx_tab_array({[0]=1, 2, 3, 4}, 4);
   
   __arena_stage_Arena.Rockets = _hx_tab_array({[0]=8, 7}, 2);
@@ -3562,6 +3732,8 @@ _hx_funcToField = function(f)
     return f
   end
 end
+
+_hx_print = print or (function() end)
 
 _hx_table = {}
 _hx_table.pack = _G.table.pack or function(...)

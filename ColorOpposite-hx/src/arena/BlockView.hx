@@ -1,9 +1,12 @@
 package arena;
 
+import arena.RocketView.RocketMessages;
 import defold.Go.GoEasing;
 import defold.Go.GoPlayback;
 
 typedef BlockViewData = {
+    var block: Block;
+    
     var isCellLocked: Bool;
     var lockedCellX: Int;
     var lockedCellY: Int;
@@ -22,20 +25,21 @@ class BlockView extends Script<BlockViewData> {
     override function on_message<TMessage>(self:BlockViewData, message_id:Message<TMessage>, message:TMessage, sender:Url) {
         switch (message_id) {
             case BlockViewMessages.setup:
+                self.block = message.block;
                 setSprite(self, message.block.kind);
 
                 switch (message.reason) {
                     case Swap:
-                        Go.set_position(ArenaConst.tileCenter(message.block.x, message.block.y));
+                        Go.set_position(ArenaConst.tileCenter(message.block.x, message.block.y, Board));
                     
                     case Generate:
-                        Go.set_position(ArenaConst.tileCenter(message.block.x, message.block.y+1));
+                        Go.set_position(ArenaConst.tileCenter(message.block.x, message.block.y+1, Board));
                         lockCell(self, message.block.x, message.block.y);
                         Go.animate(
                             ".",
                             "position",
                             GoPlayback.PLAYBACK_ONCE_FORWARD,
-                            ArenaConst.tileCenter(message.block.x, message.block.y),
+                            ArenaConst.tileCenter(message.block.x, message.block.y, Board),
                             GoEasing.EASING_LINEAR,
                             0.15,
                             0,
@@ -50,14 +54,14 @@ class BlockView extends Script<BlockViewData> {
                     ".",
                     "position",
                     GoPlayback.PLAYBACK_ONCE_FORWARD,
-                    ArenaConst.tileCenter(message.x, message.y),
+                    ArenaConst.tileCenter(message.x, message.y, Board),
                     GoEasing.EASING_LINEAR,
                     0.15,
                     0,
                     move_done);
 
             case BlockViewMessages.activate:
-                //
+                activate(self, message.x, message.y);
         }
     }
 
@@ -95,5 +99,24 @@ class BlockView extends Script<BlockViewData> {
                 return;
         }
         Sprite.play_flipbook(BlockViewRes.sprite, image);
+    }
+
+    function activate(self:BlockViewData, x: Int, y: Int) {
+        if (self.block.kind == RocketVert || self.block.kind == RocketHor) {
+            var r1 = Factory.create(BlockViewRes.factory_rocket);
+            var r2 = Factory.create(BlockViewRes.factory_rocket);
+            Go.set_parent(r1, ArenaScreenRes.arena);
+            Go.set_parent(r2, ArenaScreenRes.arena);
+            
+            if (self.block.kind == RocketHor) {
+                Msg.post(r1, RocketMessages.setup, {x: x, y: y, dx: -1, dy: 0});
+                Msg.post(r2, RocketMessages.setup, {x: x, y: y, dx: 1, dy: 0});
+            } else {
+                Msg.post(r1, RocketMessages.setup, {x: x, y: y, dx: 0, dy: -1});
+                Msg.post(r2, RocketMessages.setup, {x: x, y: y, dx: 0, dy: 1});
+            }
+        } else {
+            throw 'Can\'t activate ${self.block.kind}';
+        }
     }
 }
