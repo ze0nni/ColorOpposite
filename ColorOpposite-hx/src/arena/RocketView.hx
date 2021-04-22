@@ -49,8 +49,8 @@ class RocketView extends Script<Data> {
                     "position",
                     PLAYBACK_ONCE_FORWARD,
                     ArenaConst.tileCenter(message.x + 8 * message.dx, message.y + 8 * message.dy, OverBoard),
-                    GoEasing.EASING_INCUBIC,
-                    1);
+                    GoEasing.EASING_LINEAR,
+                    0.3);
 
                 for (i in 1...8) {
                     var x = message.x + i * message.dx;

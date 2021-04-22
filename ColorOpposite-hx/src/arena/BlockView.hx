@@ -56,7 +56,7 @@ class BlockView extends Script<BlockViewData> {
                     GoPlayback.PLAYBACK_ONCE_FORWARD,
                     ArenaConst.tileCenter(message.x, message.y, Board),
                     GoEasing.EASING_LINEAR,
-                    0.15,
+                    0.08,
                     0,
                     move_done);
 
@@ -107,7 +107,7 @@ class BlockView extends Script<BlockViewData> {
             var r2 = Factory.create(BlockViewRes.factory_rocket);
             Go.set_parent(r1, ArenaScreenRes.arena);
             Go.set_parent(r2, ArenaScreenRes.arena);
-            
+
             if (self.block.kind == RocketHor) {
                 Msg.post(r1, RocketMessages.setup, {x: x, y: y, dx: -1, dy: 0});
                 Msg.post(r2, RocketMessages.setup, {x: x, y: y, dx: 1, dy: 0});
