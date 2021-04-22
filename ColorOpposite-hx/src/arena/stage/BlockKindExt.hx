@@ -11,6 +11,10 @@ class BlockKindExt {
             ;
     }
 
+    inline public static function isPowerup(kind: BlockKind) {
+        return isRocket(kind);
+    }
+
     inline public static function isRocket(kind: BlockKind) {
         return kind == RocketVert
             || kind == RocketHor

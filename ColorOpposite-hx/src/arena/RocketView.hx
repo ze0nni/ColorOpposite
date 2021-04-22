@@ -33,7 +33,6 @@ class RocketView extends Script<Data> {
                 continue;
             var cell = self.cells[i];
             self.cells[i] = null;
-            trace(cell);
             ArenaScreen.ArenaInst.unlockCell(cell.x, cell.y);
         }
     }

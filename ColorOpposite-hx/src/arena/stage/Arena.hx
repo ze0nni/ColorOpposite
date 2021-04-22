@@ -4,6 +4,8 @@ import arena.stage.Cells.CellsExt;
 import haxe.macro.Expr.Case;
 
 typedef CellContext = {
+    var x: Int;
+    var y: Int;
     var lock: Int;
 }
 
@@ -66,6 +68,8 @@ class Arena<TSelf> {
             _cells.push(row);
             for (x in 0...size) {
                 row.push({
+                    x: x,
+                    y: y,
                     lock: 0,
                 });
             }
@@ -373,6 +377,11 @@ class Arena<TSelf> {
                 continue;
             }
             var block = cell.block;
+            
+            if (block != null && block.kind.isRocket()) {
+                activateRocket(context.x, context.y, cell);
+            }
+
             cell.block = null;
             _cellsToClean[i] = null;
             _cellsContextToClean[i] = null;

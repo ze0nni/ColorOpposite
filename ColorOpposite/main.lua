@@ -253,7 +253,6 @@ __gui_Windows = _hx_e()
 __haxe_IMap = _hx_e()
 __haxe_Exception = _hx_e()
 __haxe_Json = _hx_e()
-__haxe_Log = _hx_e()
 __haxe_NativeStackTrace = _hx_e()
 __haxe_ValueException = _hx_e()
 __haxe_ds_IntMap = _hx_e()
@@ -1492,7 +1491,7 @@ __arena_BlockView.prototype.on_message = function(self,_self,message_id,message,
     _self.lockedCellX = x;
     _self.lockedCellY = y;
     __arena_ArenaScreen.ArenaInst:lockCell(x, y);
-    _G.go.animate(".", "position", _G.go.PLAYBACK_ONCE_FORWARD, __arena_stage_ArenaConst.tileCenter(message.x, message.y, __arena_stage_Layer.Board), _G.go.EASING_LINEAR, 0.15, 0, _hx_bind(self,self.move_done));
+    _G.go.animate(".", "position", _G.go.PLAYBACK_ONCE_FORWARD, __arena_stage_ArenaConst.tileCenter(message.x, message.y, __arena_stage_Layer.Board), _G.go.EASING_LINEAR, 0.08, 0, _hx_bind(self,self.move_done));
   elseif (message_id) == __arena_BlockViewMessages.remove then 
     _G.go.delete();
   elseif (message_id) == __arena_BlockViewMessages.setup then 
@@ -1600,7 +1599,6 @@ __arena_RocketView.prototype.update = function(self,_self,dt)
     end;
     local cell = _self.cells[i];
     _self.cells[i] = nil;
-    __haxe_Log.trace(cell, _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/arena/RocketView.hx",lineNumber=36,className="arena.RocketView",methodName="update"}));
     __arena_ArenaScreen.ArenaInst:unlockCell(cell.x, cell.y);until true
     if _hx_continue_1 then 
     _hx_continue_1 = false;
@@ -1615,7 +1613,7 @@ __arena_RocketView.prototype.on_message = function(self,_self,message_id,message
     _self.x = pos.x;
     _self.y = pos.y;
     _G.go.set_position(pos);
-    _G.go.animate(".", "position", _G.go.PLAYBACK_ONCE_FORWARD, __arena_stage_ArenaConst.tileCenter(message.x + (8 * message.dx), message.y + (8 * message.dy), __arena_stage_Layer.OverBoard), _G.go.EASING_INCUBIC, 1);
+    _G.go.animate(".", "position", _G.go.PLAYBACK_ONCE_FORWARD, __arena_stage_ArenaConst.tileCenter(message.x + (8 * message.dx), message.y + (8 * message.dy), __arena_stage_Layer.OverBoard), _G.go.EASING_LINEAR, 0.3);
     local x = message.x + message.dx;
     local y = message.y + message.dy;
     _self.cells:push(_hx_o({__fields__={x=true,y=true},x=x,y=y}));
@@ -1672,12 +1670,13 @@ __arena_stage_Arena.super = function(self,stage,_self,listener,controller)
   local _g = 0;
   while (_g < size) do 
     _g = _g + 1;
+    local y = _g - 1;
     local row = Array.new();
     self._cells:push(row);
     local _g = 0;
     while (_g < size) do 
       _g = _g + 1;
-      row:push(_hx_o({__fields__={lock=true},lock=0}));
+      row:push(_hx_o({__fields__={x=true,y=true,lock=true},x=_g - 1,y=y,lock=0}));
     end;
   end;
   self._listener:onResize(self._self, self._stage.size);
@@ -1901,7 +1900,6 @@ __arena_stage_Arena.prototype.touchCellInternal = function(self,x,y)
   self:handleMatch(x, y, score);
 end
 __arena_stage_Arena.prototype.activateRocket = function(self,x,y,rocketCell) 
-  __haxe_Log.trace("ACT", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/arena/stage/Arena.hx",lineNumber=301,className="arena.stage.Arena",methodName="activateRocket"}));
   local rocketBlock = rocketCell.block;
   rocketCell.block = nil;
   self._listener:onPowerupActivated(self._self, x, y, rocketBlock.id);
@@ -1955,9 +1953,7 @@ __arena_stage_Arena.prototype.handleMatch = function(self,x,y,score)
   if (self._controller:currentTeamId() == self._controller:teamId()) then 
     self._controller:setScore(self._controller:currentTeamId(), p.score);
   end;
-  if (score < 5) then 
-    self:spawnBlock(x, y, self:peekRandom(__arena_stage_Arena.Rockets), 1);
-  end;
+  self:spawnBlock(x, y, self:peekRandom(__arena_stage_Arena.Rockets), 1);
 end
 __arena_stage_Arena.prototype.handleTimeLeft = function(self) 
   if (self._lastTimeLeft == nil) then 
@@ -1989,14 +1985,25 @@ __arena_stage_Arena.prototype.handleCleanCells = function(self)
     _g = _g + 1;
     local i = _g - 1;
     local cell = self._cellsToClean[i];
+    local context = self._cellsContextToClean[i];
     if ((cell == nil) or (cell.block == nil)) then 
       break;
     end;
-    if (self._cellsContextToClean[i].lock > 0) then 
+    if (context.lock > 0) then 
       hasLocked = true;
       break;
     end;
     local block = cell.block;
+    local tmp;
+    if (block ~= nil) then 
+      local kind = block.kind;
+      tmp = (kind == 7) or (kind == 8);
+    else
+      tmp = false;
+    end;
+    if (tmp) then 
+      self:activateRocket(context.x, context.y, cell);
+    end;
     cell.block = nil;
     self._cellsToClean[i] = nil;
     self._cellsContextToClean[i] = nil;
@@ -2919,30 +2926,6 @@ __haxe_Json.stringify = function(value,replacer,space)
   do return __haxe_format_JsonPrinter.print(value, replacer, space) end;
 end
 
-__haxe_Log.new = {}
-__haxe_Log.__name__ = true
-__haxe_Log.formatOutput = function(v,infos) 
-  local str = Std.string(v);
-  if (infos == nil) then 
-    do return str end;
-  end;
-  local pstr = Std.string(Std.string(infos.fileName) .. Std.string(":")) .. Std.string(infos.lineNumber);
-  if (infos.customParams ~= nil) then 
-    local _g = 0;
-    local _g1 = infos.customParams;
-    while (_g < _g1.length) do 
-      local v = _g1[_g];
-      _g = _g + 1;
-      str = Std.string(str) .. Std.string((Std.string(", ") .. Std.string(Std.string(v))));
-    end;
-  end;
-  do return Std.string(Std.string(pstr) .. Std.string(": ")) .. Std.string(str) end;
-end
-__haxe_Log.trace = function(v,infos) 
-  local str = __haxe_Log.formatOutput(v, infos);
-  _hx_print(str);
-end
-
 __haxe_NativeStackTrace.new = {}
 __haxe_NativeStackTrace.__name__ = true
 __haxe_NativeStackTrace.saveStack = function(exception) 
@@ -3732,8 +3715,6 @@ _hx_funcToField = function(f)
     return f
   end
 end
-
-_hx_print = print or (function() end)
 
 _hx_table = {}
 _hx_table.pack = _G.table.pack or function(...)
