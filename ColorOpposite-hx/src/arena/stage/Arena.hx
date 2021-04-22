@@ -1,5 +1,6 @@
 package arena.stage;
 
+import arena.stage.Cells.CellsExt;
 import haxe.macro.Expr.Case;
 
 typedef CellContext = {
@@ -32,6 +33,8 @@ class Arena<TSelf> {
     var _cellsLocks: Int = 0;
     var _lockForUpdate: Bool = false;
     var _cells: Array<Array<CellContext>>;
+    var _cellsToClean: Array<Cell> = [];
+    var _cellsContextToClean: Array<CellContext> = [];
     
     var _state: Int = 0;
     var _requestForUpdateState: Bool = true;
@@ -98,6 +101,7 @@ class Arena<TSelf> {
         }
 
         handleTimeLeft();
+        handleCleanCells();
         handleGenerateBlocks();
         handleEmptyCells();
 
@@ -217,12 +221,17 @@ class Arena<TSelf> {
         if (x < 0 || y < 0 || x >= size || y >= size) {
             return;
         }
-        if (_stage.cells[y][x].block == null) {
+        var cell = _stage.cells[y][x];
+        if (cell.block == null) {
             return;
         }
-
         _requestForUpdateState = true;
         _lockForUpdate = true;
+
+        if (cell.block.kind == RocketVert || cell.block.kind == RocketHor) {
+            handleRocket(x, y, cell);
+            return;
+        }
 
         var xStack = [x];
         var yStack = [y];
@@ -280,6 +289,31 @@ class Arena<TSelf> {
         }
     }
 
+    function handleRocket(x: Int, y: Int, rocketCell: Cell) {
+        var rocketBlock = rocketCell.block;
+        rocketCell.block = null;
+        _listener.onBlockDespawned(_self, rocketBlock.id);
+
+        if (rocketBlock.kind == RocketHor) {
+            for (i in 0..._stage.size) {
+                if (i == x) 
+                    continue;
+                _cellsToClean.push(_stage.cells[y][i]);
+                _cellsContextToClean.push(_cells[y][i]);
+            }
+        } else if (rocketBlock.kind == RocketVert) {
+            for (i in 0..._stage.size) {
+                if (i == y) 
+                    continue;
+                _cellsToClean.push(_stage.cells[i][x]);
+                _cellsContextToClean.push(_cells[i][x]);
+            }
+        }
+
+        _requestForUpdateState = true;
+        _lockForUpdate = true;
+    }
+
     function handleMatch(x: Int, y: Int, score: Int) {
         var p = player(_controller.currentTeamId());
 
@@ -311,6 +345,29 @@ class Arena<TSelf> {
                 _timeoutHappened = true;
                 _controller.timeOut();
             }
+        }
+    }
+
+    function handleCleanCells() {
+        if (_cellsToClean.length == 0)
+            return;
+
+        var hasLocked = false;
+
+        for (i in 0..._cellsToClean.length) {
+            var cell = _cellsToClean[i];
+            var context = _cellsContextToClean[i];
+            if (cell == null || cell.block == null)
+                continue;
+            if (context.lock > 0) {
+                hasLocked = true;
+                continue;
+            }
+            var block = cell.block;
+            cell.block = null;
+            _cellsToClean[i] = null;
+            _cellsContextToClean[i] = null;
+            _listener.onBlockDespawned(_self, block.id);
         }
     }
 

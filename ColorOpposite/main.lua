@@ -1539,6 +1539,8 @@ end
 __arena_stage_Arena.super = function(self,stage,_self,listener,controller) 
   self._requestForUpdateState = true;
   self._state = 0;
+  self._cellsContextToClean = _hx_tab_array({}, 0);
+  self._cellsToClean = _hx_tab_array({}, 0);
   self._lockForUpdate = false;
   self._cellsLocks = 0;
   self._stage = stage;
@@ -1569,6 +1571,8 @@ __arena_stage_Arena.prototype._stage= nil;
 __arena_stage_Arena.prototype._cellsLocks= nil;
 __arena_stage_Arena.prototype._lockForUpdate= nil;
 __arena_stage_Arena.prototype._cells= nil;
+__arena_stage_Arena.prototype._cellsToClean= nil;
+__arena_stage_Arena.prototype._cellsContextToClean= nil;
 __arena_stage_Arena.prototype._state= nil;
 __arena_stage_Arena.prototype._requestForUpdateState= nil;
 __arena_stage_Arena.prototype._self= nil;
@@ -1606,6 +1610,7 @@ __arena_stage_Arena.prototype.update = function(self,dt)
     self:handleInput();
   end;
   self:handleTimeLeft();
+  self:handleCleanCells();
   self:handleGenerateBlocks();
   self:handleEmptyCells();
   if ((self._requestForUpdateState and not self._lockForUpdate) and (self._cellsLocks == 0)) then 
@@ -1700,11 +1705,16 @@ __arena_stage_Arena.prototype.touchCellInternal = function(self,x,y)
   if ((((x < 0) or (y < 0)) or (x >= size)) or (y >= size)) then 
     do return end;
   end;
-  if (self._stage.cells[y][x].block == nil) then 
+  local cell = self._stage.cells[y][x];
+  if (cell.block == nil) then 
     do return end;
   end;
   self._requestForUpdateState = true;
   self._lockForUpdate = true;
+  if ((cell.block.kind == 7) or (cell.block.kind == 8)) then 
+    self:handleRocket(x, y, cell);
+    do return end;
+  end;
   local xStack = _hx_tab_array({[0]=x}, 1);
   local yStack = _hx_tab_array({[0]=y}, 1);
   local score = 0;
@@ -1762,6 +1772,52 @@ __arena_stage_Arena.prototype.touchCellInternal = function(self,x,y)
   self._listener:onMatched(self._self, x, y, score);
   self:handleMatch(x, y, score);
 end
+__arena_stage_Arena.prototype.handleRocket = function(self,x,y,rocketCell) 
+  local rocketBlock = rocketCell.block;
+  rocketCell.block = nil;
+  self._listener:onBlockDespawned(self._self, rocketBlock.id);
+  if (rocketBlock.kind == 8) then 
+    local _g = 0;
+    local _g1 = self._stage.size;
+    local _hx_continue_1 = false;
+    while (_g < _g1) do repeat 
+      _g = _g + 1;
+      local i = _g - 1;
+      if (i == x) then 
+        break;
+      end;
+      self._cellsToClean:push(self._stage.cells[y][i]);
+      self._cellsContextToClean:push(self._cells[y][i]);until true
+      if _hx_continue_1 then 
+      _hx_continue_1 = false;
+      break;
+      end;
+      
+    end;
+  else
+    if (rocketBlock.kind == 7) then 
+      local _g = 0;
+      local _g1 = self._stage.size;
+      local _hx_continue_1 = false;
+      while (_g < _g1) do repeat 
+        _g = _g + 1;
+        local i = _g - 1;
+        if (i == y) then 
+          break;
+        end;
+        self._cellsToClean:push(self._stage.cells[i][x]);
+        self._cellsContextToClean:push(self._cells[i][x]);until true
+        if _hx_continue_1 then 
+        _hx_continue_1 = false;
+        break;
+        end;
+        
+      end;
+    end;
+  end;
+  self._requestForUpdateState = true;
+  self._lockForUpdate = true;
+end
 __arena_stage_Arena.prototype.handleMatch = function(self,x,y,score) 
   local p = self:player(self._controller:currentTeamId());
   p.score = p.score + score;
@@ -1769,9 +1825,7 @@ __arena_stage_Arena.prototype.handleMatch = function(self,x,y,score)
   if (self._controller:currentTeamId() == self._controller:teamId()) then 
     self._controller:setScore(self._controller:currentTeamId(), p.score);
   end;
-  if (score == 5) then 
-    self:spawnBlock(x, y, self:peekRandom(__arena_stage_Arena.Rockets), 1);
-  end;
+  self:spawnBlock(x, y, self:peekRandom(__arena_stage_Arena.Rockets), 1);
 end
 __arena_stage_Arena.prototype.handleTimeLeft = function(self) 
   if (self._lastTimeLeft == nil) then 
@@ -1788,6 +1842,35 @@ __arena_stage_Arena.prototype.handleTimeLeft = function(self)
       self._timeoutHappened = true;
       self._controller:timeOut();
     end;
+  end;
+end
+__arena_stage_Arena.prototype.handleCleanCells = function(self) 
+  if (self._cellsToClean.length == 0) then 
+    do return end;
+  end;
+  local _g = 0;
+  local _g1 = self._cellsToClean.length;
+  local _hx_continue_1 = false;
+  while (_g < _g1) do repeat 
+    _g = _g + 1;
+    local i = _g - 1;
+    local cell = self._cellsToClean[i];
+    if ((cell == nil) or (cell.block == nil)) then 
+      break;
+    end;
+    if (self._cellsContextToClean[i].lock > 0) then 
+      break;
+    end;
+    local block = cell.block;
+    cell.block = nil;
+    self._cellsToClean[i] = nil;
+    self._cellsContextToClean[i] = nil;
+    self._listener:onBlockDespawned(self._self, block.id);until true
+    if _hx_continue_1 then 
+    _hx_continue_1 = false;
+    break;
+    end;
+    
   end;
 end
 __arena_stage_Arena.prototype.handleGenerateBlocks = function(self) 
