@@ -5,11 +5,9 @@ import arena.ArenaScreenGui.ArenaScreenGuiMessages;
 import arena.ArenaLobbyWindow.ArenaLobbyWindowMessages;
 import gui.Windows;
 import arena.stage.ArenaController.Common;
-import lua.lib.luasocket.socket.SelectResult;
 import defold.Go.GoMessages;
 import arena.BlockView.BlockViewMessages;
 import arena.stage.Block;
-import arena.stage.ArenaEvent;
 import arena.stage.Arena;
 
 typedef ArenaScreenData = {
@@ -119,8 +117,7 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
     public function onBlockDespawned(self: ArenaScreenData, id: Identity<Block>): Void {
         var blockId = self.blocks[id];
         if (blockId != null) {
-            Go.delete(blockId);
-            self.blocks.remove(id);
+            Msg.post(blockId, BlockViewMessages.remove);
         }
     }
 
@@ -133,6 +130,13 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
 
     public function onBlockKindChanged(self: ArenaScreenData, id: Identity<Block>, kind: BlockKind): Void {
 
+    }
+
+    public function onPowerupActivated(self: ArenaScreenData, x: Int, y: Int, id: Identity<Block>): Void {
+        var blockId = self.blocks[id];
+        if (blockId != null) {
+            Msg.post(blockId, BlockViewMessages.activate, {x:x, y:y});
+        }
     }
 
     public function onAppendScore(self: ArenaScreenData, newScore: Int, isMyScore: Bool): Void {

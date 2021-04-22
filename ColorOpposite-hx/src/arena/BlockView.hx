@@ -13,7 +13,9 @@ typedef BlockViewData = {
 @:publicFields
 class BlockViewMessages {
     static var setup(default, never) = new Message<{block:Block, reason:BlockSpawnReason}>("block_view_setup");
+    static var remove(default, never) = new Message<Void>("block_view_remove");
     static var move(default, never) = new Message<{x: Int, y: Int}>("block_view_move");
+    static var activate(default, never) = new Message<{x: Int, y: Int}>("block_view_activate");
 }
 
 class BlockView extends Script<BlockViewData> {
@@ -39,6 +41,8 @@ class BlockView extends Script<BlockViewData> {
                             0,
                             move_done);
                         }
+            case BlockViewMessages.remove:
+                Go.delete();
 
             case BlockViewMessages.move:
                 lockCell(self, message.x, message.y);
@@ -51,6 +55,9 @@ class BlockView extends Script<BlockViewData> {
                     0.15,
                     0,
                     move_done);
+
+            case BlockViewMessages.activate:
+                //
         }
     }
 

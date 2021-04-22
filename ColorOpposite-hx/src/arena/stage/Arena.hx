@@ -229,7 +229,7 @@ class Arena<TSelf> {
         _lockForUpdate = true;
 
         if (cell.block.kind == RocketVert || cell.block.kind == RocketHor) {
-            handleRocket(x, y, cell);
+            activateRocket(x, y, cell);
             return;
         }
 
@@ -289,9 +289,10 @@ class Arena<TSelf> {
         }
     }
 
-    function handleRocket(x: Int, y: Int, rocketCell: Cell) {
+    function activateRocket(x: Int, y: Int, rocketCell: Cell) {
         var rocketBlock = rocketCell.block;
         rocketCell.block = null;
+        _listener.onPowerupActivated(_self, x, y, rocketBlock.id);
         _listener.onBlockDespawned(_self, rocketBlock.id);
 
         if (rocketBlock.kind == RocketHor) {
@@ -354,6 +355,8 @@ class Arena<TSelf> {
 
         var hasLocked = false;
 
+        var score = 0;
+
         for (i in 0..._cellsToClean.length) {
             var cell = _cellsToClean[i];
             var context = _cellsContextToClean[i];
@@ -368,6 +371,18 @@ class Arena<TSelf> {
             _cellsToClean[i] = null;
             _cellsContextToClean[i] = null;
             _listener.onBlockDespawned(_self, block.id);
+
+            score += 1;
+        }
+
+        if (!hasLocked) {
+            _cellsToClean.resize(0);
+            _cellsContextToClean.resize(0);
+        }
+        if (score > 0) {
+            var p = player(_controller.currentTeamId());
+            p.score += score;
+            _listener.onAppendScore(_self, p.score, _controller.currentTeamId() == _controller.teamId());
         }
     }
 

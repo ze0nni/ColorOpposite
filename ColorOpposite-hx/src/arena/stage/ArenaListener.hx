@@ -7,6 +7,7 @@ interface ArenaListener<TSelf> {
     function onBlockDespawned(self: TSelf, id: Identity<Block>): Void;
     function onBlockMoved(self: TSelf, id: Identity<Block>, x: Int, y: Int): Void;
     function onBlockKindChanged(self: TSelf, id: Identity<Block>, kind: BlockKind): Void;
+    function onPowerupActivated(self: TSelf, x: Int, y: Int, id: Identity<Block>): Void;
 
     function onAppendScore(self: TSelf, newScore: Int, isMyScore: Bool): Void;
     function onMatched(self: TSelf, x: Int, y: Int, score: Int): Void;

@@ -1268,6 +1268,7 @@ __arena_stage_ArenaListener.prototype.onResize= nil;
 __arena_stage_ArenaListener.prototype.onBlockSpawned= nil;
 __arena_stage_ArenaListener.prototype.onBlockDespawned= nil;
 __arena_stage_ArenaListener.prototype.onBlockMoved= nil;
+__arena_stage_ArenaListener.prototype.onPowerupActivated= nil;
 __arena_stage_ArenaListener.prototype.onAppendScore= nil;
 __arena_stage_ArenaListener.prototype.onMatched= nil;
 __arena_stage_ArenaListener.prototype.onConnected= nil;
@@ -1362,8 +1363,7 @@ __arena_ArenaScreen.prototype.onBlockDespawned = function(self,_self,id)
   end;
   local blockId = ret;
   if (blockId ~= nil) then 
-    _G.go.delete(blockId);
-    _self.blocks:remove(id);
+    _G.msg.post(blockId, __arena_BlockViewMessages.remove);
   end;
 end
 __arena_ArenaScreen.prototype.onBlockMoved = function(self,_self,id,x,y) 
@@ -1374,6 +1374,16 @@ __arena_ArenaScreen.prototype.onBlockMoved = function(self,_self,id,x,y)
   local blockId = ret;
   if (blockId ~= nil) then 
     _G.msg.post(blockId, __arena_BlockViewMessages.move, _hx_o({__fields__={x=true,y=true},x=x,y=y}));
+  end;
+end
+__arena_ArenaScreen.prototype.onPowerupActivated = function(self,_self,x,y,id) 
+  local ret = _self.blocks.h[id];
+  if (ret == __haxe_ds_IntMap.tnull) then 
+    ret = nil;
+  end;
+  local blockId = ret;
+  if (blockId ~= nil) then 
+    _G.msg.post(blockId, __arena_BlockViewMessages.activate, _hx_o({__fields__={x=true,y=true},x=x,y=y}));
   end;
 end
 __arena_ArenaScreen.prototype.onAppendScore = function(self,_self,newScore,isMyScore) 
@@ -1465,7 +1475,8 @@ end
 __arena_BlockView.__name__ = true
 __arena_BlockView.prototype = _hx_e();
 __arena_BlockView.prototype.on_message = function(self,_self,message_id,message,sender) 
-  if (message_id) == __arena_BlockViewMessages.move then 
+  if (message_id) == __arena_BlockViewMessages.activate then 
+  elseif (message_id) == __arena_BlockViewMessages.move then 
     local x = message.x;
     local y = message.y;
     if (_self.isCellLocked) then 
@@ -1477,6 +1488,8 @@ __arena_BlockView.prototype.on_message = function(self,_self,message_id,message,
     _self.lockedCellY = y;
     __arena_ArenaScreen.ArenaInst:lockCell(x, y);
     _G.go.animate(".", "position", _G.go.PLAYBACK_ONCE_FORWARD, __arena_stage_ArenaConst.tileCenter(message.x, message.y), _G.go.EASING_LINEAR, 0.15, 0, _hx_bind(self,self.move_done));
+  elseif (message_id) == __arena_BlockViewMessages.remove then 
+    _G.go.delete();
   elseif (message_id) == __arena_BlockViewMessages.setup then 
     self:setSprite(_self, message.block.kind);
     local _g = message.reason;
@@ -1712,7 +1725,7 @@ __arena_stage_Arena.prototype.touchCellInternal = function(self,x,y)
   self._requestForUpdateState = true;
   self._lockForUpdate = true;
   if ((cell.block.kind == 7) or (cell.block.kind == 8)) then 
-    self:handleRocket(x, y, cell);
+    self:activateRocket(x, y, cell);
     do return end;
   end;
   local xStack = _hx_tab_array({[0]=x}, 1);
@@ -1772,9 +1785,10 @@ __arena_stage_Arena.prototype.touchCellInternal = function(self,x,y)
   self._listener:onMatched(self._self, x, y, score);
   self:handleMatch(x, y, score);
 end
-__arena_stage_Arena.prototype.handleRocket = function(self,x,y,rocketCell) 
+__arena_stage_Arena.prototype.activateRocket = function(self,x,y,rocketCell) 
   local rocketBlock = rocketCell.block;
   rocketCell.block = nil;
+  self._listener:onPowerupActivated(self._self, x, y, rocketBlock.id);
   self._listener:onBlockDespawned(self._self, rocketBlock.id);
   if (rocketBlock.kind == 8) then 
     local _g = 0;
@@ -1825,7 +1839,9 @@ __arena_stage_Arena.prototype.handleMatch = function(self,x,y,score)
   if (self._controller:currentTeamId() == self._controller:teamId()) then 
     self._controller:setScore(self._controller:currentTeamId(), p.score);
   end;
-  self:spawnBlock(x, y, self:peekRandom(__arena_stage_Arena.Rockets), 1);
+  if (score < 5) then 
+    self:spawnBlock(x, y, self:peekRandom(__arena_stage_Arena.Rockets), 1);
+  end;
 end
 __arena_stage_Arena.prototype.handleTimeLeft = function(self) 
   if (self._lastTimeLeft == nil) then 
@@ -1848,6 +1864,8 @@ __arena_stage_Arena.prototype.handleCleanCells = function(self)
   if (self._cellsToClean.length == 0) then 
     do return end;
   end;
+  local hasLocked = false;
+  local score = 0;
   local _g = 0;
   local _g1 = self._cellsToClean.length;
   local _hx_continue_1 = false;
@@ -1859,18 +1877,29 @@ __arena_stage_Arena.prototype.handleCleanCells = function(self)
       break;
     end;
     if (self._cellsContextToClean[i].lock > 0) then 
+      hasLocked = true;
       break;
     end;
     local block = cell.block;
     cell.block = nil;
     self._cellsToClean[i] = nil;
     self._cellsContextToClean[i] = nil;
-    self._listener:onBlockDespawned(self._self, block.id);until true
+    self._listener:onBlockDespawned(self._self, block.id);
+    score = score + 1;until true
     if _hx_continue_1 then 
     _hx_continue_1 = false;
     break;
     end;
     
+  end;
+  if (not hasLocked) then 
+    self._cellsToClean:resize(0);
+    self._cellsContextToClean:resize(0);
+  end;
+  if (score > 0) then 
+    local p = self:player(self._controller:currentTeamId());
+    p.score = p.score + score;
+    self._listener:onAppendScore(self._self, p.score, self._controller:currentTeamId() == self._controller:teamId());
   end;
 end
 __arena_stage_Arena.prototype.handleGenerateBlocks = function(self) 
@@ -2815,14 +2844,6 @@ __haxe_ds_IntMap.__name__ = true
 __haxe_ds_IntMap.__interfaces__ = {__haxe_IMap}
 __haxe_ds_IntMap.prototype = _hx_e();
 __haxe_ds_IntMap.prototype.h= nil;
-__haxe_ds_IntMap.prototype.remove = function(self,key) 
-  if (self.h[key] == nil) then 
-    do return false end;
-  else
-    self.h[key] = nil;
-    do return true end;
-  end;
-end
 
 __haxe_ds_IntMap.prototype.__class__ =  __haxe_ds_IntMap
 
@@ -3472,7 +3493,11 @@ local _hx_static_init = function()
   
   __arena_BlockViewMessages.setup = _G.hash("block_view_setup");
   
+  __arena_BlockViewMessages.remove = _G.hash("block_view_remove");
+  
   __arena_BlockViewMessages.move = _G.hash("block_view_move");
+  
+  __arena_BlockViewMessages.activate = _G.hash("block_view_activate");
   
   __arena_BlockViewRes.sprite = "#sprite";
   
