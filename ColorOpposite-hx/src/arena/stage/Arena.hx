@@ -32,6 +32,7 @@ class Arena<TSelf> {
 
     var _stage: ArenaStage;
     
+    var _locks: Int = 0;
     var _cellsLocks: Int = 0;
     var _lockForUpdate: Bool = false;
     var _cells: Array<Array<CellContext>>;
@@ -103,6 +104,7 @@ class Arena<TSelf> {
         if (!_lockForUpdate && _cellsLocks == 0) {
             handleInput();
         }
+
 
         handleTimeLeft();
         handleCleanCells();
@@ -187,22 +189,32 @@ class Arena<TSelf> {
         _listener.onBlockSpawned(_self, _stage.cells[y][x].block, reason);
     }
 
-    public function lockCell(x: Int, y: Int) {
+    public function lock() {
+        _locks++;
+    }
+
+    public function unlock() {
+        _locks--;
+    }
+
+    public function lockCell(x: Int, y: Int): Bool {
         var lastCell = _stage.size - 1;
         if (x < 0 || y < 0 || x > lastCell || y > lastCell)
-            return;
+            return false;
 
         _cells[y][x].lock++;
         _cellsLocks++;
+        return true;
     }
 
-    public function unlockCell(x: Int, y: Int) {
+    public function unlockCell(x: Int, y: Int): Bool {
         var lastCell = _stage.size - 1;
         if (x < 0 || y < 0 || x > lastCell || y > lastCell)
-            return;
+            return false;
 
         _cells[y][x].lock--;
         _cellsLocks--;
+        return true;
     }
 
     inline function isValidCell(x: Int, y: Int) {
@@ -337,9 +349,9 @@ class Arena<TSelf> {
             _controller.setScore(_controller.currentTeamId(), p.score);
         }
 
-        if (score == 5) {
+        //if (score == 5) {
             spawnBlock(x, y, peekRandom(Rockets), Swap);
-        }
+        //}
     }
 
     function handleTimeLeft() {
@@ -402,6 +414,9 @@ class Arena<TSelf> {
     }
 
     function handleGenerateBlocks() {
+        if (_locks > 0)
+            return;
+
         var size = _stage.size;
         var top = size - 1;
         for (x in 0...size) {
@@ -419,6 +434,9 @@ class Arena<TSelf> {
     }
 
     function handleEmptyCells() {
+        if (_locks > 0)
+            return;
+
         var size = _stage.size;
         var cells = _stage.cells;
         for (y in 1...size) {

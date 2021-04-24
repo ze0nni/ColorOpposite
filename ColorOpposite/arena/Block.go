@@ -34,7 +34,7 @@ embedded_components {
   }
 }
 embedded_components {
-  id: "faactory_rocket"
+  id: "factory_rocket"
   type: "factory"
   data: "prototype: \"/arena/Rocket.go\"\n"
   "load_dynamically: false\n"

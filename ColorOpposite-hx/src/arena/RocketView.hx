@@ -24,7 +24,8 @@ class RocketView extends Script<Data> {
             Math.pow(pos.x - self.x, 2) +
             Math.pow(pos.y - self.y, 2))
          / ArenaConst.TileSize);
-        if (d > 8) {
+        if (d >= 8) {
+            ArenaScreen.ArenaInst.unlock();
             Go.delete();
         }
 
@@ -51,6 +52,7 @@ class RocketView extends Script<Data> {
                     GoEasing.EASING_LINEAR,
                     0.3);
 
+                ArenaScreen.ArenaInst.lock();
                 for (i in 1...8) {
                     var x = message.x + i * message.dx;
                     var y = message.y + i * message.dy;

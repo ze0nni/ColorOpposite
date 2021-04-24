@@ -1333,9 +1333,11 @@ __arena_ArenaScreen.prototype.on_input = function(self,_self,action_id,action)
     end;
     local arenaPos = _G.go.get_position(__arena_ArenaScreenRes.arena);
     local mousePos = Main.screen_to_viewport(action.screen_x, action.screen_y);
-    local arenaX = Std.int((mousePos.x - arenaPos.x) / 92);
-    local arenaY = Std.int((mousePos.y - arenaPos.y) / 92);
-    if ((mousePos.x >= 0) and (mousePos.y >= 0)) then 
+    local dx = mousePos.x - arenaPos.x;
+    local dy = mousePos.y - arenaPos.y;
+    if ((dx > 0) and (dy > 0)) then 
+      local arenaX = Std.int(dx / 92);
+      local arenaY = Std.int(dy / 92);
       _self.arena:touchCell(arenaX, arenaY);
     end;
   end;
@@ -1585,7 +1587,8 @@ end
 __arena_RocketView.prototype.update = function(self,_self,dt) 
   local pos = _G.go.get_position();
   local d = Std.int(_G.math.sqrt(_G.math.pow(pos.x - _self.x, 2) + _G.math.pow(pos.y - _self.y, 2)) / 92);
-  if (d > 8) then 
+  if (d >= 8) then 
+    __arena_ArenaScreen.ArenaInst:unlock();
     _G.go.delete();
   end;
   local _g = 0;
@@ -1614,6 +1617,7 @@ __arena_RocketView.prototype.on_message = function(self,_self,message_id,message
     _self.y = pos.y;
     _G.go.set_position(pos);
     _G.go.animate(".", "position", _G.go.PLAYBACK_ONCE_FORWARD, __arena_stage_ArenaConst.tileCenter(message.x + (8 * message.dx), message.y + (8 * message.dy), __arena_stage_Layer.OverBoard), _G.go.EASING_LINEAR, 0.3);
+    __arena_ArenaScreen.ArenaInst:lock();
     local x = message.x + message.dx;
     local y = message.y + message.dy;
     _self.cells:push(_hx_o({__fields__={x=true,y=true},x=x,y=y}));
@@ -1661,6 +1665,7 @@ __arena_stage_Arena.super = function(self,stage,_self,listener,controller)
   self._cellsToClean = _hx_tab_array({}, 0);
   self._lockForUpdate = false;
   self._cellsLocks = 0;
+  self._locks = 0;
   self._stage = stage;
   self._self = _self;
   self._listener = listener;
@@ -1687,6 +1692,7 @@ __arena_stage_Arena.Empty = function(_self,listener,controller)
 end
 __arena_stage_Arena.prototype = _hx_e();
 __arena_stage_Arena.prototype._stage= nil;
+__arena_stage_Arena.prototype._locks= nil;
 __arena_stage_Arena.prototype._cellsLocks= nil;
 __arena_stage_Arena.prototype._lockForUpdate= nil;
 __arena_stage_Arena.prototype._cells= nil;
@@ -1795,29 +1801,37 @@ __arena_stage_Arena.prototype.spawnBlock = function(self,x,y,kind,reason)
   tmp[x].block = _hx_o({__fields__={id=true,x=true,y=true,kind=true},id=tmp1,x=x,y=y,kind=kind});
   self._listener:onBlockSpawned(self._self, self._stage.cells[y][x].block, reason);
 end
+__arena_stage_Arena.prototype.lock = function(self) 
+  self._locks = self._locks + 1;
+end
+__arena_stage_Arena.prototype.unlock = function(self) 
+  self._locks = self._locks - 1;
+end
 __arena_stage_Arena.prototype.lockCell = function(self,x,y) 
   local lastCell = self._stage.size - 1;
   if ((((x < 0) or (y < 0)) or (x > lastCell)) or (y > lastCell)) then 
-    do return end;
+    do return false end;
   end;
   local fh = self._cells[y][x];
   fh.lock = fh.lock + 1;
   self._cellsLocks = self._cellsLocks + 1;
+  do return true end
 end
 __arena_stage_Arena.prototype.unlockCell = function(self,x,y) 
   local lastCell = self._stage.size - 1;
   if ((((x < 0) or (y < 0)) or (x > lastCell)) or (y > lastCell)) then 
-    do return end;
+    do return false end;
   end;
   local fh = self._cells[y][x];
   fh.lock = fh.lock - 1;
   self._cellsLocks = self._cellsLocks - 1;
+  do return true end
 end
 __arena_stage_Arena.prototype.touchCell = function(self,x,y) 
   if (not self._controller:myTurn()) then 
     do return end;
   end;
-  if (not ((((x > 0) and (y > 0)) and (x < self._stage.size)) and (y < self._stage.size))) then 
+  if (not ((((x >= 0) and (y >= 0)) and (x < self._stage.size)) and (y < self._stage.size))) then 
     do return end;
   end;
   self._controller:touch(x, y);
@@ -2026,6 +2040,9 @@ __arena_stage_Arena.prototype.handleCleanCells = function(self)
   end;
 end
 __arena_stage_Arena.prototype.handleGenerateBlocks = function(self) 
+  if (self._locks > 0) then 
+    do return end;
+  end;
   local size = self._stage.size;
   local top = size - 1;
   local _g = 0;
@@ -2049,6 +2066,9 @@ __arena_stage_Arena.prototype.handleGenerateBlocks = function(self)
   end;
 end
 __arena_stage_Arena.prototype.handleEmptyCells = function(self) 
+  if (self._locks > 0) then 
+    do return end;
+  end;
   local size = self._stage.size;
   local cells = self._stage.cells;
   local _g = 1;
