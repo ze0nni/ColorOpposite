@@ -237,7 +237,7 @@ class Arena<TSelf> {
     }
 
     function touchCellInternal(x: Int, y: Int) {
-        if (_cellsLocks > 0) {
+        if (_cellsLocks > 0 || _locks > 0) {
             return;
         }
         var size = _stage.size;
