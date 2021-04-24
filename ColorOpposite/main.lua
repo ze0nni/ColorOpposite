@@ -1706,7 +1706,7 @@ __arena_stage_Arena.prototype._controller= nil;
 __arena_stage_Arena.prototype._random= nil;
 __arena_stage_Arena.prototype._timeoutHappened= nil;
 __arena_stage_Arena.prototype._roundTime= nil;
-__arena_stage_Arena.prototype._roundStart= nil;
+__arena_stage_Arena.prototype._roundTimeLeft= nil;
 __arena_stage_Arena.prototype._lastTimeLeft= nil;
 __arena_stage_Arena.prototype.getId = function(self) 
   local tmp = (function() 
@@ -1731,10 +1731,10 @@ __arena_stage_Arena.prototype.update = function(self,dt)
     self:handleInput();
     do return end;
   end;
-  if (not self._lockForUpdate and (self._cellsLocks == 0)) then 
+  if ((not self._lockForUpdate and (self._locks == 0)) and (self._cellsLocks == 0)) then 
     self:handleInput();
   end;
-  self:handleTimeLeft();
+  self:handleTimeLeft(dt);
   self:handleCleanCells();
   self:handleGenerateBlocks();
   self:handleEmptyCells();
@@ -1762,7 +1762,7 @@ __arena_stage_Arena.prototype.handleInput = function(self)
     local _g1 = _g[2];
     local _g = _g[3];
     self._roundTime = _g;
-    self._roundStart = _G.os.clock();
+    self._roundTimeLeft = _g;
     self._lastTimeLeft = _g;
     self._timeoutHappened = false;
     self._listener:onCurrentRound(self._self, _g1);
@@ -1838,7 +1838,7 @@ __arena_stage_Arena.prototype.touchCell = function(self,x,y)
   self:touchCellInternal(x, y);
 end
 __arena_stage_Arena.prototype.touchCellInternal = function(self,x,y) 
-  if (self._cellsLocks > 0) then 
+  if ((self._cellsLocks > 0) or (self._locks > 0)) then 
     do return end;
   end;
   local size = self._stage.size;
@@ -1969,12 +1969,16 @@ __arena_stage_Arena.prototype.handleMatch = function(self,x,y,score)
   end;
   self:spawnBlock(x, y, self:peekRandom(__arena_stage_Arena.Rockets), 1);
 end
-__arena_stage_Arena.prototype.handleTimeLeft = function(self) 
+__arena_stage_Arena.prototype.handleTimeLeft = function(self,dt) 
   if (self._lastTimeLeft == nil) then 
     do return end;
   end;
-  local timeLeft = self._roundTime - Std.int(_G.os.clock() - self._roundStart);
-  if (timeLeft >= 0) then 
+  if ((self._lockForUpdate or (self._locks ~= 0)) or (self._cellsLocks ~= 0)) then 
+    do return end;
+  end;
+  self._roundTimeLeft = self._roundTimeLeft - dt;
+  local timeLeft = Std.int(self._roundTimeLeft);
+  if (self._roundTimeLeft >= 0) then 
     if (timeLeft ~= self._lastTimeLeft) then 
       self._lastTimeLeft = timeLeft;
       self._listener:onTurnTimeLeft(self._self, timeLeft, self._roundTime);

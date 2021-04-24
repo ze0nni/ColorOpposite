@@ -50,7 +50,7 @@ class Arena<TSelf> {
 
     var _timeoutHappened: Bool;
     var _roundTime: Int;
-    var _roundStart: Float;
+    var _roundTimeLeft: Float;
     var _lastTimeLeft: Null<Int>;
 
     private static var Colors: Array<BlockKind> = [Color1, Color2, Color3, Color4, /*Color5, Color6*/];
@@ -101,12 +101,12 @@ class Arena<TSelf> {
         }
 
 
-        if (!_lockForUpdate && _cellsLocks == 0) {
+        if (!_lockForUpdate && _locks == 0 && _cellsLocks == 0) {
             handleInput();
         }
 
 
-        handleTimeLeft();
+        handleTimeLeft(dt);
         handleCleanCells();
         handleGenerateBlocks();
         handleEmptyCells();
@@ -139,7 +139,7 @@ class Arena<TSelf> {
 
             case CurrentRound(teamId, roundTime):
                 _roundTime = roundTime;
-                _roundStart = Os.clock();
+                _roundTimeLeft = roundTime;
                 _lastTimeLeft = roundTime;
                 _timeoutHappened = false;
                 _listener.onCurrentRound(_self, teamId);
@@ -354,13 +354,16 @@ class Arena<TSelf> {
         //}
     }
 
-    function handleTimeLeft() {
+    function handleTimeLeft(dt: Float) {
         if (_lastTimeLeft == null) {
             return;
         }
+        if (_lockForUpdate || _locks != 0 || _cellsLocks != 0)
+            return;
 
-        var timeLeft = _roundTime - Std.int(Os.clock() - _roundStart);
-        if (timeLeft >= 0) {
+        _roundTimeLeft -= dt;
+        var timeLeft = Std.int(_roundTimeLeft);
+        if (_roundTimeLeft >= 0) {
             if (timeLeft != _lastTimeLeft) {
                 _lastTimeLeft = timeLeft;
                 _listener.onTurnTimeLeft(_self, timeLeft, _roundTime);
