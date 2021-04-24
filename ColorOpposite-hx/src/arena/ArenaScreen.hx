@@ -79,10 +79,11 @@ class ArenaScreen extends Script<ArenaScreenData> implements ArenaListener<Arena
                     return true;
                 var arenaPos = Go.get_position(ArenaScreenRes.arena);
                 var mousePos = Main.screen_to_viewport(action.screen_x, action.screen_y);
-                var arenaX = Std.int((mousePos.x - arenaPos.x) / ArenaConst.TileSize);
-                var arenaY = Std.int((mousePos.y - arenaPos.y) / ArenaConst.TileSize);
-                
-                if (mousePos.x >= 0 && mousePos.y >= 0) {
+                var dx = (mousePos.x - arenaPos.x);
+                var dy = (mousePos.y - arenaPos.y);
+                if (dx > 0 && dy > 0) {
+                    var arenaX = Std.int(dx / ArenaConst.TileSize);
+                    var arenaY = Std.int(dy / ArenaConst.TileSize);
                     self.arena.touchCell(arenaX, arenaY);
                 }
         }

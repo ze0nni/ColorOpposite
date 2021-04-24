@@ -218,7 +218,7 @@ class Arena<TSelf> {
     }
 
     inline function isValidCell(x: Int, y: Int) {
-        return x > 0 && y > 0 && x < _stage.size && y < _stage.size;
+        return x >= 0 && y >= 0 && x < _stage.size && y < _stage.size;
     }
 
     inline function IsFree(x: Int, y: Int): Bool {
